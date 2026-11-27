@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "programs",
     "applications",
+    "backoffice",
 ]
 
 MIDDLEWARE = [
@@ -104,3 +105,8 @@ APPLICATION_SUBMIT_THROTTLE_RATE = os.environ.get("APPLICATION_SUBMIT_THROTTLE_R
 
 # 랜딩 페이지(/)에서 보여줄 대표 교육의 슬러그.
 LANDING_PROGRAM_SLUG = os.environ.get("LANDING_PROGRAM_SLUG", "ai-hero")
+
+# 관리자 페이지(/manage/)는 Django 기본 로그인을 쓴다.
+LOGIN_URL = "/manage/login/"
+LOGIN_REDIRECT_URL = "/manage/"
+LOGOUT_REDIRECT_URL = "/manage/login/"

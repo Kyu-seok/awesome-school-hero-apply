@@ -5,6 +5,7 @@ API(serializer)와 관리자 페이지는 규칙을 다시 구현하지 않고 �
 
 진입점
 - receive_application: 신청 접수(검증, 중복 확인, 저장)
+- change_status: 상태 변경(운영자가 상태와 운영 메모를 바꾼다)
 """
 
 from datetime import date, timedelta
@@ -96,6 +97,32 @@ def receive_application(
         if "unique_active_application" in str(exc):
             raise ValidationError({NON_FIELD_ERRORS: [DUPLICATE_MESSAGE]}) from exc
         raise
+
+
+def change_status(
+    application: Application, *, status: str, operator_memo: str | None = None
+) -> Application:
+    """운영자가 신청 상태(와 운영 메모)를 바꾼다. 상태 간 전이 제약은 두지 않는다.
+
+    operator_memo가 None이면 메모는 그대로 둔다. 알 수 없는 상태면 ValidationError를 던진다.
+    연락 완료 등 접수됨이 아닌 상태가 되면 연락일 안내 발송 대상에서 자연히 빠진다.
+    """
+    if status not in Application.Status.values:
+        raise ValidationError({"status": ["알 수 없는 상태입니다."]})
+    application.status = status
+    update_fields = ["status", "updated_at"]
+    if operator_memo is not None:
+        application.operator_memo = operator_memo
+        update_fields.append("operator_memo")
+    try:
+        with transaction.atomic():
+            application.save(update_fields=update_fields)
+    except IntegrityError as exc:
+        # 취소된 신청을 되살렸는데 같은 조건의 활성 신청이 이미 있는 경우.
+        if "unique_active_application" in str(exc):
+            raise ValidationError({"status": [DUPLICATE_MESSAGE]}) from exc
+        raise
+    return application
 
 
 def _contact_date_errors(contact_date: date, preferred_class_date: date, today: date) -> list[str]:
