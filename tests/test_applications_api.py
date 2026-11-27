@@ -29,13 +29,13 @@ def frozen_today():
 
 @pytest.fixture
 def program():
-    return make_program(slug="hero")
+    return make_program(slug="champion")
 
 
 def payload(program, **overrides):
     data = {
         "program": program.slug,
-        "organization_name": "히어로초등학교",
+        "organization_name": "챔피언초등학교",
         "applicant_name": "김선생",
         "applicant_email": "teacher@example.com",
         "applicant_phone": "010-1234-5678",
@@ -62,7 +62,7 @@ def test_valid_application_is_received_with_its_contact_date(api_client, program
     assert body["status_display"] == "접수됨"
     assert body["contact_date"] == "2026-12-03"
     saved = Application.objects.get(pk=body["id"])
-    assert saved.organization_name == "히어로초등학교"
+    assert saved.organization_name == "챔피언초등학교"
     assert saved.preferred_class_date == date(2026, 12, 22)
     assert saved.privacy_agreed_at == NOW
 

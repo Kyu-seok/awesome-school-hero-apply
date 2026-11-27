@@ -21,7 +21,7 @@ def send_receipt_email(application: Application) -> None:
     }
     _send(
         template="notifications/receipt",
-        subject=f"[히어로스쿨] {application.program.name} 교육 신청이 접수되었습니다",
+        subject=f"[챔피언스쿨] {application.program.name} 교육 신청이 접수되었습니다",
         to=application.applicant_email,
         context=context,
     )
@@ -41,7 +41,7 @@ def send_contact_day_email(application: Application) -> None:
     }
     _send(
         template="notifications/contact_day",
-        subject=f"[히어로스쿨] 오늘 {program.name} 교육 신청 건으로 연락드립니다",
+        subject=f"[챔피언스쿨] 오늘 {program.name} 교육 신청 건으로 연락드립니다",
         to=application.applicant_email,
         context=context,
     )

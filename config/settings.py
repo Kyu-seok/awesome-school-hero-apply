@@ -108,7 +108,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "히어로스쿨 교육 신청 API",
+    "TITLE": "챔피언스쿨 교육 신청 API",
     "VERSION": "0.1.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
@@ -130,7 +130,7 @@ else:
 APPLICATION_SUBMIT_THROTTLE_RATE = os.environ.get("APPLICATION_SUBMIT_THROTTLE_RATE", "10/hour")
 
 # 랜딩 페이지(/)에서 보여줄 대표 교육의 슬러그.
-LANDING_PROGRAM_SLUG = os.environ.get("LANDING_PROGRAM_SLUG", "ai-hero")
+LANDING_PROGRAM_SLUG = os.environ.get("LANDING_PROGRAM_SLUG", "ai-champion")
 
 # 관리자 페이지(/manage/)는 Django 기본 로그인을 쓴다.
 LOGIN_URL = "/manage/login/"
@@ -170,7 +170,7 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
 # SMTP 서버가 느려도 worker가 한 메일에 오래 묶이지 않게 한다.
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "히어로스쿨 <kyuships@gmail.com>")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "챔피언스쿨 <kyuships@gmail.com>")
 
 # 신청 목록 내보내기(스프레드시트). "memory"는 프로세스 메모리에만 쓴다(테스트, 로컬).
 # 배포는 "google": 서비스 계정 JSON 키 경로(저장소 밖, 컨테이너에 마운트)와 시트 ID가 필요하다.

@@ -1,7 +1,7 @@
 [project]
 name = "hero-school"
 version = "0.1.0"
-description = "히어로스쿨 교육 신청 시스템"
+description = "챔피언스쿨 교육 신청 시스템"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "django>=5.2,<5.3",

@@ -40,7 +40,7 @@ def frozen_today():
 
 @pytest.fixture
 def program():
-    return make_program(name="인공지능 히어로", summary="AI와 함께 문제를 해결하는 히어로 되기")
+    return make_program(name="인공지능 챔피언", summary="AI와 함께 문제를 해결하는 챔피언 되기")
 
 
 def contact_today(program, **overrides):
@@ -53,7 +53,7 @@ def recipients():
 
 def test_sends_contact_day_email_to_received_applications_contacted_today(program):
     application = contact_today(
-        program, applicant_email="teacher@example.com", organization_name="히어로초등학교"
+        program, applicant_email="teacher@example.com", organization_name="챔피언초등학교"
     )
 
     send_todays_contact_day_emails()
@@ -61,7 +61,7 @@ def test_sends_contact_day_email_to_received_applications_contacted_today(progra
     assert recipients() == ["teacher@example.com"]
     message = mail.outbox[0]
     assert "오늘 담당자가 연락드립니다" in message.body
-    for text in ["인공지능 히어로", "AI와 함께 문제를 해결하는 히어로 되기", "히어로초등학교"]:
+    for text in ["인공지능 챔피언", "AI와 함께 문제를 해결하는 챔피언 되기", "챔피언초등학교"]:
         assert text in message.body
     html, mimetype = message.alternatives[0]
     assert mimetype == "text/html"

@@ -25,12 +25,12 @@ def test_landing_page_shows_featured_program_with_curriculum_in_order(client, se
     assert html.index("첫째 교시") < html.index("둘째 교시")
 
 
-def test_landing_page_shows_seeded_ai_hero_program(client):
+def test_landing_page_shows_seeded_ai_champion_program(client):
     response = client.get("/")
 
     assert response.status_code == 200
     html = response.content.decode()
-    assert "인공지능 히어로" in html
+    assert "인공지능 챔피언" in html
     for period in range(1, 7):
         assert f"{period}교시" in html
 
@@ -136,7 +136,7 @@ def test_landing_page_shows_the_drawn_illustration_until_an_image_is_uploaded(cl
     program = make_program(slug="featured")
 
     images = [a for tag, a, _ in _elements(client.get("/")) if tag == "img" and a.get("alt")]
-    assert images[0]["src"] == "/static/img/ai-hero.svg"
+    assert images[0]["src"] == "/static/img/ai-champion.svg"
 
     program.image = "programs/uploaded.png"
     program.save()

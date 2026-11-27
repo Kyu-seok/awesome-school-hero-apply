@@ -88,26 +88,26 @@ def test_operator_api_paginates(operator_client):
 
 
 def test_operator_api_filters_by_status_program_and_contact_date(operator_client):
-    hero = make_program(slug="hero")
+    champion = make_program(slug="champion")
     other = make_program(slug="other")
-    match = make_application(hero, status="contacted", contact_date=date(2026, 12, 3))
-    wrong_status = make_application(hero, status="received", contact_date=date(2026, 12, 3))
+    match = make_application(champion, status="contacted", contact_date=date(2026, 12, 3))
+    wrong_status = make_application(champion, status="received", contact_date=date(2026, 12, 3))
     wrong_program = make_application(other, status="contacted", contact_date=date(2026, 12, 3))
-    wrong_date = make_application(hero, status="contacted", contact_date=date(2026, 12, 4))
+    wrong_date = make_application(champion, status="contacted", contact_date=date(2026, 12, 4))
 
     assert ids(operator_client.get(URL, {"status": "contacted"})) == {
         match.pk,
         wrong_program.pk,
         wrong_date.pk,
     }
-    assert ids(operator_client.get(URL, {"program": "hero"})) == {
+    assert ids(operator_client.get(URL, {"program": "champion"})) == {
         match.pk,
         wrong_status.pk,
         wrong_date.pk,
     }
     assert ids(operator_client.get(URL, {"contact_date": "2026-12-04"})) == {wrong_date.pk}
     response = operator_client.get(
-        URL, {"status": "contacted", "program": "hero", "contact_date": "2026-12-03"}
+        URL, {"status": "contacted", "program": "champion", "contact_date": "2026-12-03"}
     )
     assert ids(response) == {match.pk}
 

@@ -211,7 +211,7 @@ run_wizard() {
 
 TOTAL_STAGES=8
 
-banner "히어로스쿨: Google Sheets 내보내기 설정"
+banner "챔피언스쿨: Google Sheets 내보내기 설정"
 say "관리자 페이지의 \"내보내기\"가 쓸 공유 시트와 서비스 계정을 만든다."
 say "저장소 루트(.env가 있는 곳, 배포라면 미니 PC)에서 실행한다. 지금 .env: $ENV_FILE"
 say ""
@@ -288,7 +288,7 @@ pause "다음 단계로 (Enter)"
 # ── 5. 시트 만들기 ───────────────────────────────────────────────────────────
 stage "공유 시트 만들기"
 open_url "https://sheets.new"
-step "새 스프레드시트 제목을 '히어로스쿨 신청 목록'으로 바꾼다."
+step "새 스프레드시트 제목을 '챔피언스쿨 신청 목록'으로 바꾼다."
 step "주소창의 URL 전체를 복사한다(…/spreadsheets/d/<시트 ID>/edit…)."
 note "내보내기는 첫 번째 탭을 통째로 덮어쓴다. 첫 탭에는 다른 내용을 두지 않는다."
 ask SHEET_URL_INPUT "시트 URL 또는 시트 ID:"

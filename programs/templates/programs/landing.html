@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ program.name }} | 히어로스쿨</title>
+  <title>{{ program.name }} | 챔피언스쿨</title>
   <meta name="description" content="{{ program.summary }}">
   <meta name="theme-color" content="#9fd6ff">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -17,7 +17,7 @@
     <div class="topbar__inner">
       <a class="wordmark" href="/">
         <svg class="wordmark__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M19 3 L6 18 h8 l-3 11 L26 13 h-9 Z"/></svg>
-        히어로스쿨
+        챔피언스쿨
       </a>
       <a class="topbar__link" href="#apply">수업 신청</a>
     </div>
@@ -36,7 +36,7 @@
           {% if program.image %}
             <img src="{{ program.image.url }}" alt="{{ program.name }} 대표 이미지">
           {% else %}
-            <img src="{% static 'img/ai-hero.svg' %}" alt="망토를 두른 어린이 히어로와 손을 흔드는 로봇 친구" width="480" height="420">
+            <img src="{% static 'img/ai-champion.svg' %}" alt="망토를 두른 어린이 챔피언와 손을 흔드는 로봇 친구" width="480" height="420">
           {% endif %}
         </figure>
       </div>
@@ -89,8 +89,8 @@
 
   <footer class="footer">
     <div class="section__inner">
-      <p class="footer__brand">히어로스쿨</p>
-      <p>학교와 기관을 위한 히어로스쿨 교육 신청 페이지입니다.</p>
+      <p class="footer__brand">챔피언스쿨</p>
+      <p>학교와 기관을 위한 챔피언스쿨 교육 신청 페이지입니다.</p>
     </div>
   </footer>
 </body>

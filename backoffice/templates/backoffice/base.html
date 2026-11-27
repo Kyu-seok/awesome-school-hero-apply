@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}신청 관리{% endblock %} | 히어로스쿨</title>
+  <title>{% block title %}신청 관리{% endblock %} | 챔피언스쿨</title>
   <style>
     body { font-family: system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif; margin: 0; color: #1f2328; background: #fff; }
     header, main { max-width: 1100px; margin: 0 auto; padding: 12px 16px; }
@@ -30,7 +30,7 @@
 </head>
 <body>
   <header>
-    <a href="{% url 'backoffice:application-list' %}">히어로스쿨 신청 관리</a>
+    <a href="{% url 'backoffice:application-list' %}">챔피언스쿨 신청 관리</a>
     {% if user.is_authenticated %}
     <form method="post" action="{% url 'backoffice:logout' %}">
       {% csrf_token %}

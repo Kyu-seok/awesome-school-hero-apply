@@ -7,7 +7,7 @@ class ProgramQuerySet(models.QuerySet):
 
 
 class Program(models.Model):
-    """교육: 히어로스쿨이 제공하는 하나의 교육 상품."""
+    """교육: 챔피언스쿨이 제공하는 하나의 교육 상품."""
 
     slug = models.SlugField("슬러그", unique=True)
     name = models.CharField("교육명", max_length=100)

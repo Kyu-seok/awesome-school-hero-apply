@@ -90,16 +90,16 @@ def test_all_tab_lists_every_application_newest_first(operator_client):
 
 
 def test_list_filters_by_status_program_and_contact_date(operator_client):
-    hero = make_program(slug="hero")
+    champion = make_program(slug="champion")
     other = make_program(slug="other")
-    match = make_application(hero, status="contacted", contact_date=date(2026, 12, 3))
-    make_application(hero, status="received", contact_date=date(2026, 12, 3))
+    match = make_application(champion, status="contacted", contact_date=date(2026, 12, 3))
+    make_application(champion, status="received", contact_date=date(2026, 12, 3))
     make_application(other, status="contacted", contact_date=date(2026, 12, 3))
-    make_application(hero, status="contacted", contact_date=date(2026, 12, 4))
+    make_application(champion, status="contacted", contact_date=date(2026, 12, 4))
 
     response = operator_client.get(
         URL,
-        {"tab": "all", "status": "contacted", "program": "hero", "contact_date": "2026-12-03"},
+        {"tab": "all", "status": "contacted", "program": "champion", "contact_date": "2026-12-03"},
     )
 
     assert listed(response) == {match.pk}
@@ -119,7 +119,7 @@ def test_list_is_paginated(operator_client):
 
 def test_detail_shows_all_inputs_consent_time_and_contact_day_email_time(operator_client):
     application = make_application(
-        organization_name="히어로초등학교",
+        organization_name="챔피언초등학교",
         applicant_name="김선생",
         applicant_email="teacher@example.com",
         applicant_phone="010-1234-5678",
@@ -136,7 +136,7 @@ def test_detail_shows_all_inputs_consent_time_and_contact_day_email_time(operato
     html = operator_client.get(f"{URL}applications/{application.pk}/").content.decode()
 
     for text in [
-        "히어로초등학교",
+        "챔피언초등학교",
         "김선생",
         "teacher@example.com",
         "010-1234-5678",

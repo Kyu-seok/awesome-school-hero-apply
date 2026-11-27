@@ -1,5 +1,5 @@
 {% autoescape off %}{{ application.applicant_name }} 선생님, 안녕하세요.
-히어로스쿨입니다. {{ application.organization_name }}의 교육 신청이 접수되었습니다.
+챔피언스쿨입니다. {{ application.organization_name }}의 교육 신청이 접수되었습니다.
 
 ■ 신청 내용
 - 교육: {{ program_name }}
@@ -13,5 +13,5 @@
 수업 일정과 세부 내용은 그때 함께 정하겠습니다.
 
 이 메일은 발신 전용입니다.
-히어로스쿨 드림
+챔피언스쿨 드림
 {% endautoescape %}

@@ -50,11 +50,11 @@ def operator_client(client, django_user_model):
 
 
 def test_operator_export_overwrites_sheet_with_header_and_all_applications(operator_client):
-    program = make_program(name="인공지능 히어로")
+    program = make_program(name="인공지능 챔피언")
     with time_machine.travel(datetime(2026, 11, 20, 14, 5, 30, tzinfo=KST), tick=False):
         first = make_application(
             program,
-            organization_name="히어로초등학교",
+            organization_name="챔피언초등학교",
             applicant_name="김선생",
             applicant_email="kim@example.com",
             applicant_phone="010-1234-5678",
@@ -91,8 +91,8 @@ def test_operator_export_overwrites_sheet_with_header_and_all_applications(opera
         [
             first.pk,
             "2026-11-20 14:05",
-            "인공지능 히어로",
-            "히어로초등학교",
+            "인공지능 챔피언",
+            "챔피언초등학교",
             "김선생",
             "kim@example.com",
             "010-1234-5678",
@@ -108,7 +108,7 @@ def test_operator_export_overwrites_sheet_with_header_and_all_applications(opera
         [
             second.pk,
             "2026-11-20 14:05",
-            "인공지능 히어로",
+            "인공지능 챔피언",
             "용감중학교",
             "이선생",
             "lee@example.com",
@@ -220,7 +220,7 @@ def _export_status(page: str) -> str:
 
 
 def test_list_page_shows_last_export_result(operator_client):
-    make_application(organization_name="히어로초등학교")
+    make_application(organization_name="챔피언초등학교")
     make_application(organization_name="용감중학교")
     with time_machine.travel(datetime(2026, 12, 1, 10, 3, tzinfo=KST), tick=False):
         operator_client.post(EXPORT_URL)

@@ -31,7 +31,7 @@ SINGLE, MULTI = Application.ClassType.SINGLE, Application.ClassType.MULTI
 #  상태, 운영 메모, 연락일 안내 발송 여부)
 # fmt: off
 DEMO_APPLICATIONS = [
-    ("서울히어로초등학교", "김하늘", "초등 5학년", 4, SINGLE, 6, 28, 0, S.RECEIVED, "", True),
+    ("서울챔피언초등학교", "김하늘", "초등 5학년", 4, SINGLE, 6, 28, 0, S.RECEIVED, "", True),
     ("부산바다중학교", "이준호", "중학 1학년", 6, MULTI, 4, 35, 0, S.RECEIVED, "", True),
     ("대전과학초등학교", "박서연", "초등 6학년", 3, SINGLE, 6, 30, 0, S.CONTACTED,
      "연락일 전에 먼저 통화함. 12시 이후 연락 선호.", False),

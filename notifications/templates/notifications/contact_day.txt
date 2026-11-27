@@ -1,5 +1,5 @@
 {% autoescape off %}{{ application.applicant_name }} 선생님, 안녕하세요.
-히어로스쿨입니다. 오늘 담당자가 연락드립니다.
+챔피언스쿨입니다. 오늘 담당자가 연락드립니다.
 
 {{ application.organization_name }}에서 신청하신 교육의 수업 일정과 세부 내용을 함께 정하려고 합니다.
 통화 전에 아래 내용을 한번 살펴봐 주세요.
@@ -18,5 +18,5 @@
 - 연락 가능 날짜: {{ contact_date }}
 
 이 메일은 발신 전용입니다.
-히어로스쿨 드림
+챔피언스쿨 드림
 {% endautoescape %}
