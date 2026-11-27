@@ -10,6 +10,7 @@ dependencies = [
     "dj-database-url>=2.3",
     "psycopg[binary]>=3.2",
     "pillow>=11",
+    "celery[redis]>=5.4,<6",
     "gunicorn>=23",
 ]
 

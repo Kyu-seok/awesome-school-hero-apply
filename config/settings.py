@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "programs",
     "applications",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -112,3 +113,30 @@ APPLICATION_SUBMIT_THROTTLE_RATE = os.environ.get("APPLICATION_SUBMIT_THROTTLE_R
 
 # 랜딩 페이지(/)에서 보여줄 대표 교육의 슬러그.
 LANDING_PROGRAM_SLUG = os.environ.get("LANDING_PROGRAM_SLUG", "ai-hero")
+
+# Celery. 로컬 compose와 배포에서는 redis 서비스를 브로커로 쓴다.
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER")
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_IGNORE_RESULT = True
+# 브로커가 죽어 있어도 신청 API가 오래 붙잡히지 않게 발행 재시도를 짧게 끊는다.
+CELERY_BROKER_CONNECTION_TIMEOUT = 2
+CELERY_TASK_PUBLISH_RETRY_POLICY = {
+    "max_retries": 2,
+    "interval_start": 0,
+    "interval_step": 0.5,
+    "interval_max": 1,
+}
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# 메일. 로컬 기본값은 console 백엔드(worker 로그에 찍힌다). 테스트는 Django가 locmem으로 바꾼다.
+# 배포는 Gmail SMTP: EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend와 앱 비밀번호.
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+# SMTP 서버가 느려도 worker가 한 메일에 오래 묶이지 않게 한다.
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "히어로스쿨 <kyuships@gmail.com>")

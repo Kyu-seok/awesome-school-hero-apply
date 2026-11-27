@@ -3,10 +3,10 @@
 # 비밀 정보는 .env(.env.example 참고)에만 둔다.
 name: hero-school
 
-# Django 이미지를 쓰는 서비스의 공통 설정. worker·beat는 이렇게 더한다:
-#   worker:
+# Django 이미지를 쓰는 서비스(web, worker, 이후 beat)의 공통 설정. 새 서비스는 이렇게 더한다:
+#   beat:
 #     <<: *django
-#     command: celery -A config worker -l info
+#     command: celery -A config beat --loglevel=info
 x-django: &django
   image: hero-school-app
   restart: unless-stopped
@@ -14,11 +14,14 @@ x-django: &django
   environment:
     DATABASE_URL: postgres://hero_school:${POSTGRES_PASSWORD:?.env에 POSTGRES_PASSWORD가 필요합니다}@db:5432/hero_school
     DJANGO_MEDIA_ROOT: /app/media
+    CELERY_BROKER_URL: redis://redis:6379/0
   volumes:
     - static:/app/staticfiles
     - media:/app/media
   depends_on:
     db:
+      condition: service_healthy
+    redis:
       condition: service_healthy
 
 services:
@@ -37,6 +40,17 @@ services:
       timeout: 3s
       retries: 20
 
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   web:
     <<: *django
     build: .
@@ -46,6 +60,10 @@ services:
       --workers 3
       --access-logfile -
       --no-control-socket
+
+  worker:
+    <<: *django
+    command: celery -A config worker --loglevel=info --concurrency=2
 
   nginx:
     image: nginx:1.27-alpine
@@ -63,3 +81,4 @@ volumes:
   db-data:
   static:
   media:
+  redis-data:
