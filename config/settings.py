@@ -21,6 +21,14 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-insecure-key-do-not-use-in
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
+# 프로덕션은 Cloudflare → cloudflared → nginx 뒤에 있다. nginx가 X-Forwarded-Proto를
+# 그대로 넘기므로, 프록시 뒤에서만 이 헤더를 신뢰한다(nginx는 127.0.0.1에만 열려 있다).
+if env_bool("DJANGO_BEHIND_PROXY"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = env_bool("DJANGO_SECURE_COOKIES")
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT")
+SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))
+
 INSTALLED_APPS = [
     "config.apps.SuperuserAdminConfig",
     "django.contrib.auth",

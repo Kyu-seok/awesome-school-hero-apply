@@ -16,5 +16,13 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
 
+# 앱은 root가 아닌 사용자로 돈다. 정적·미디어 디렉터리를 미리 만들어 두면
+# 처음 붙는 named volume이 이 소유권을 물려받는다.
+RUN useradd --system --uid 1000 --no-create-home app \
+    && mkdir -p /app/staticfiles /app/media \
+    && chown app:app /app/staticfiles /app/media
+USER app
+
 EXPOSE 8000
+# 로컬 개발(compose.yaml)용 기본 명령. 프로덕션(compose.prod.yaml)은 gunicorn으로 덮어쓴다.
 CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
