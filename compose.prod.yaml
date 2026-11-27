@@ -45,6 +45,7 @@ services:
       --bind 0.0.0.0:8000
       --workers 3
       --access-logfile -
+      --no-control-socket
 
   nginx:
     image: nginx:1.27-alpine
