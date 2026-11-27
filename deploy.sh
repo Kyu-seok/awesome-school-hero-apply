@@ -4,6 +4,10 @@
 #
 #   ./deploy.sh            # 미니 PC에서
 #   ./deploy.sh --no-pull  # 지금 체크아웃된 코드 그대로 배포
+#
+# 데모 데이터(데모 운영자 계정, 데모 신청)는 자동으로 넣지 않는다. 필요할 때 한 번 실행한다:
+#   docker compose -f compose.prod.yaml exec web python manage.py seed_demo
+# Django admin용 superuser도 같은 방식으로 만든다(manage.py createsuperuser).
 set -euo pipefail
 
 cd "$(dirname "$0")"

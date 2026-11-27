@@ -3,10 +3,10 @@
 # 비밀 정보는 .env(.env.example 참고)에만 둔다.
 name: hero-school
 
-# Django 이미지를 쓰는 서비스(web, worker, 이후 beat)의 공통 설정. 새 서비스는 이렇게 더한다:
-#   beat:
+# Django 이미지를 쓰는 서비스(web, worker, beat)의 공통 설정. 새 서비스는 이렇게 더한다:
+#   <name>:
 #     <<: *django
-#     command: celery -A config beat --loglevel=info
+#     command: ...
 x-django: &django
   image: hero-school-app
   restart: unless-stopped
@@ -64,6 +64,12 @@ services:
   worker:
     <<: *django
     command: celery -A config worker --loglevel=info --concurrency=2
+
+  # beat는 한 개만 띄운다(둘이면 예약 작업이 두 번 나간다). 이미지가 root가 아닌 사용자로 돌고
+  # /app은 쓸 수 없으므로 스케줄 파일은 /tmp에 둔다.
+  beat:
+    <<: *django
+    command: celery -A config beat --loglevel=info --schedule=/tmp/celerybeat-schedule
 
   nginx:
     image: nginx:1.27-alpine
