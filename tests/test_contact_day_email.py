@@ -148,3 +148,43 @@ def test_operator_marking_contacted_before_the_contact_date_prevents_the_email(
     assert mail.outbox == []
     application.refresh_from_db()
     assert application.contact_day_email_sent_at is None
+
+
+def test_failed_email_is_retried_by_a_later_run_the_same_day(program, settings):
+    settings.EMAIL_BACKEND = "tests.test_contact_day_email.RejectsBrokenAddressBackend"
+    application = contact_today(program, applicant_email="broken@example.com")
+
+    send_todays_contact_day_emails()  # 09:00: 메일 서버 오류
+    assert mail.outbox == []
+
+    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    retried_at = datetime(2026, 12, 3, 10, 0, tzinfo=KST)
+    with time_machine.travel(retried_at, tick=False):
+        send_todays_contact_day_emails()  # 10:00: 같은 날 다음 실행
+
+    assert recipients() == ["broken@example.com"]
+    application.refresh_from_db()
+    assert application.contact_day_email_sent_at == retried_at
+
+
+def test_email_that_failed_all_day_is_not_sent_the_next_day(program, settings):
+    settings.EMAIL_BACKEND = "tests.test_contact_day_email.RejectsBrokenAddressBackend"
+    application = contact_today(program, applicant_email="broken@example.com")
+    send_todays_contact_day_emails()
+
+    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    with time_machine.travel(datetime(2026, 12, 4, 9, 0, tzinfo=KST), tick=False):
+        send_todays_contact_day_emails()
+
+    assert mail.outbox == []
+    application.refresh_from_db()
+    assert application.contact_day_email_sent_at is None
+
+
+def test_beat_runs_contact_day_emails_hourly_from_9_to_17_kst(settings):
+    entry = settings.CELERY_BEAT_SCHEDULE["send-todays-contact-day-emails"]
+
+    assert entry["task"] == "notifications.tasks.send_todays_contact_day_emails"
+    assert entry["schedule"].hour == set(range(9, 18))
+    assert entry["schedule"].minute == {0}
+    assert settings.CELERY_TIMEZONE == "Asia/Seoul"

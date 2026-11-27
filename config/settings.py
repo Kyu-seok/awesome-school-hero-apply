@@ -139,10 +139,11 @@ CELERY_TASK_PUBLISH_RETRY_POLICY = {
 }
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 # beat 스케줄. crontab은 CELERY_TIMEZONE(Asia/Seoul) 기준이다.
+# 연락일 안내는 09:00에 보내고, 실패한 신청은 17:00까지 매시 정각에 다시 시도한다(같은 날만).
 CELERY_BEAT_SCHEDULE = {
     "send-todays-contact-day-emails": {
         "task": "notifications.tasks.send_todays_contact_day_emails",
-        "schedule": crontab(hour=9, minute=0),
+        "schedule": crontab(hour="9-17", minute=0),
     },
 }
 

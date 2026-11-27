@@ -27,7 +27,7 @@ def send_receipt_email(application_id: int) -> None:
 
 @shared_task
 def send_todays_contact_day_emails() -> int:
-    """Celery beat가 매일 09:00 KST에 부르는 "오늘의 연락일 안내 발송"."""
+    """Celery beat가 매일 09:00~17:00 KST 매시 정각에 부르는 "오늘의 연락일 안내 발송"."""
     # applications.services가 이 모듈을 import하므로 순환을 피해 여기서 부른다.
     from applications import services
 
