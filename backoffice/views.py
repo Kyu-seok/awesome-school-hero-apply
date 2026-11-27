@@ -1,7 +1,7 @@
 import logging
 
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -13,6 +13,7 @@ from applications.filters import ApplicationFilterForm
 from applications.models import Application
 from backoffice.access import operator_required
 from backoffice.forms import StatusChangeForm
+from exports.sheets import get_sheet
 from exports.tasks import export_applications_to_sheet
 
 logger = logging.getLogger(__name__)
@@ -83,7 +84,16 @@ def application_detail(request, pk):
 @require_POST
 @operator_required
 def export_to_sheet(request):
-    """공유 시트 내보내기를 Celery 작업으로 맡기고 바로 목록으로 돌아간다."""
+    """공유 시트 내보내기를 Celery 작업으로 맡기고 바로 목록으로 돌아간다.
+
+    시트 설정이 비었거나 모자라면 작업을 맡기지 않고 운영자에게 바로 알린다.
+    """
+    try:
+        get_sheet()
+    except ImproperlyConfigured as exc:
+        logger.error("시트 내보내기 설정 오류: %s", exc)
+        messages.error(request, f"시트 내보내기가 설정되지 않았습니다: {exc}")
+        return _back_to_list(request)
     try:
         export_applications_to_sheet.delay()
     except Exception:
@@ -91,6 +101,10 @@ def export_to_sheet(request):
         messages.error(request, "내보내기를 시작하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")
     else:
         messages.success(request, "내보내기를 시작했습니다. 잠시 뒤 시트에서 확인하세요.")
+    return _back_to_list(request)
+
+
+def _back_to_list(request):
     next_url = request.POST.get("next", "")
     if url_has_allowed_host_and_scheme(
         next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()

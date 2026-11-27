@@ -184,3 +184,29 @@ def test_export_returns_operator_to_the_page_they_were_on(operator_client):
 
     response = operator_client.post(EXPORT_URL, {"next": "https://evil.example.com/"})
     assert response["Location"] == "/manage/"
+
+
+def test_export_without_configured_sheet_tells_operator_and_writes_nothing(
+    operator_client, settings
+):
+    """배포(DEBUG 꺼짐)에서 EXPORTS_SHEET_BACKEND를 비우면 메모리에 조용히 쓰지 않고 알린다."""
+    settings.EXPORTS_SHEET_BACKEND = ""
+    make_application()
+
+    response = operator_client.post(EXPORT_URL, follow=True)
+
+    page = response.content.decode()
+    assert "내보내기를 시작했습니다" not in page
+    assert "시트 내보내기가 설정되지 않았습니다" in page
+    assert memory_sheet.rows == [["이전 내용"]]
+
+
+def test_export_with_incomplete_google_settings_tells_operator(operator_client, settings):
+    settings.EXPORTS_SHEET_BACKEND = "google"
+    settings.GOOGLE_SHEETS_SPREADSHEET_ID = ""
+
+    response = operator_client.post(EXPORT_URL, follow=True)
+
+    page = response.content.decode()
+    assert "내보내기를 시작했습니다" not in page
+    assert "시트 내보내기가 설정되지 않았습니다" in page

@@ -74,7 +74,10 @@ class GoogleSheet:
 
 
 def get_sheet() -> Sheet:
+    """설정에 맞는 시트. 설정이 비었거나 모자라면 ImproperlyConfigured를 던진다."""
     backend = settings.EXPORTS_SHEET_BACKEND
+    if not backend:
+        raise ImproperlyConfigured("EXPORTS_SHEET_BACKEND를 설정해야 합니다(google 또는 memory).")
     if backend == "memory":
         return memory_sheet
     if backend == "google":

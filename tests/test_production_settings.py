@@ -101,3 +101,22 @@ def test_without_cache_url_cache_stays_in_process(settings):
     assert settings.CACHES["default"]["BACKEND"] == (
         "django.core.cache.backends.locmem.LocMemCache"
     )
+
+
+@pytest.mark.parametrize(("debug", "expected"), [("1", "memory"), ("0", "")])
+def test_sheet_backend_defaults_to_memory_only_in_debug(debug, expected):
+    """로컬(DEBUG)만 메모리 시트를 기본값으로 쓴다. 배포에서 빠뜨리면 내보내기가 실패로 알린다."""
+    env = {k: v for k, v in os.environ.items() if k != "EXPORTS_SHEET_BACKEND"}
+    env["DJANGO_DEBUG"] = debug
+    script = "from django.conf import settings; print(repr(settings.EXPORTS_SHEET_BACKEND))"
+
+    result = subprocess.run(
+        [sys.executable, "manage.py", "shell", "-c", script],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip().splitlines()[-1] == repr(expected)
