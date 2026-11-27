@@ -12,3 +12,7 @@ media/
 service-account*.json
 .DS_Store
 .scratch/
+
+# SCSS 빌드 결과(Docker 이미지 빌드에서 만든다)
+node_modules/
+/static/css/

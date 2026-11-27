@@ -1,30 +1,97 @@
-<!doctype html>
+{% load static %}<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ program.name }} | 히어로스쿨</title>
+  <meta name="description" content="{{ program.summary }}">
+  <meta name="theme-color" content="#9fd6ff">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
 </head>
 <body>
+  <a class="skip-link" href="#apply">신청 폼으로 바로 가기</a>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="wordmark" href="/">
+        <svg class="wordmark__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M19 3 L6 18 h8 l-3 11 L26 13 h-9 Z"/></svg>
+        히어로스쿨
+      </a>
+      <a class="topbar__link" href="#apply">수업 신청</a>
+    </div>
+  </header>
+
   <main>
-    <h1>{{ program.name }}</h1>
-    <p>{{ program.summary }}</p>
-    {% if program.image %}<img src="{{ program.image.url }}" alt="{{ program.name }} 대표 이미지">{% endif %}
-    {{ program.description|linebreaks }}
-    <dl>
-      {% if program.audience %}<dt>추천 대상</dt><dd>{{ program.audience }}</dd>{% endif %}
-      {% if program.class_format %}<dt>수업 형태</dt><dd>{{ program.class_format }}</dd>{% endif %}
-    </dl>
-    <h2>커리큘럼</h2>
-    <ol>
-      {% for item in program.curriculum.all %}
-      <li>
-        <h3>{{ item.period }}교시 · {{ item.title }}</h3>
-        <p>{{ item.description }}</p>
-      </li>
-      {% endfor %}
-    </ol>
+    <section class="hero" aria-labelledby="program-name">
+      <div class="hero__inner">
+        <div class="hero__copy">
+          <h1 id="program-name" class="hero__title">{{ program.name }}</h1>
+          <p class="hero__summary">{{ program.summary }}</p>
+          <a class="cta button button--primary" href="#apply">수업 신청하기</a>
+          <p class="hero__note">신청서를 남기면 고르신 연락 가능 날짜에 담당자가 연락드립니다.</p>
+        </div>
+        <figure class="hero__art">
+          {% if program.image %}
+            <img src="{{ program.image.url }}" alt="{{ program.name }} 대표 이미지">
+          {% else %}
+            <img src="{% static 'img/ai-hero.svg' %}" alt="망토를 두른 어린이 히어로와 손을 흔드는 로봇 친구" width="480" height="420">
+          {% endif %}
+        </figure>
+      </div>
+    </section>
+
+    <section class="fit" aria-labelledby="fit-title">
+      <div class="section__inner fit__grid">
+        <div class="fit__about">
+          <h2 id="fit-title" class="section__title">우리 학생들에게 맞을까요?</h2>
+          {{ program.description|linebreaks }}
+        </div>
+        <dl class="fit__facts">
+          {% if program.audience %}
+          <div class="fact">
+            <dt>추천 대상</dt>
+            <dd>{{ program.audience }}</dd>
+          </div>
+          {% endif %}
+          {% if program.class_format %}
+          <div class="fact">
+            <dt>수업 형태</dt>
+            <dd>{{ program.class_format }}</dd>
+          </div>
+          {% endif %}
+        </dl>
+      </div>
+    </section>
+
+    {% with curriculum=program.curriculum.all %}
+    {% if curriculum %}
+    <section class="curriculum" aria-labelledby="curriculum-title">
+      <div class="section__inner">
+        <h2 id="curriculum-title" class="section__title">{{ curriculum|length }}교시 동안 이렇게 진행해요</h2>
+        <ol class="strip">
+          {% for item in curriculum %}
+          <li class="strip__panel">
+            <p class="strip__period">{{ item.period }}교시</p>
+            <h3 class="strip__title">{{ item.title }}</h3>
+            {% if item.description %}<p class="strip__text">{{ item.description }}</p>{% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </section>
+    {% endif %}
+    {% endwith %}
+
     {% include "applications/_apply_form.html" %}
   </main>
+
+  <footer class="footer">
+    <div class="section__inner">
+      <p class="footer__brand">히어로스쿨</p>
+      <p>학교와 기관을 위한 히어로스쿨 교육 신청 페이지입니다.</p>
+    </div>
+  </footer>
 </body>
 </html>
