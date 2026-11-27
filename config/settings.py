@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -86,6 +87,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+# 저장소 공용 정적 파일. static/css/는 SCSS 빌드 결과라 커밋하지 않는다(npm run build:css).
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", BASE_DIR / "media"))
@@ -127,6 +130,13 @@ CELERY_TASK_PUBLISH_RETRY_POLICY = {
     "interval_max": 1,
 }
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+# beat 스케줄. crontab은 CELERY_TIMEZONE(Asia/Seoul) 기준이다.
+CELERY_BEAT_SCHEDULE = {
+    "send-todays-contact-day-emails": {
+        "task": "notifications.tasks.send_todays_contact_day_emails",
+        "schedule": crontab(hour=9, minute=0),
+    },
+}
 
 # 메일. 로컬 기본값은 console 백엔드(worker 로그에 찍힌다). 테스트는 Django가 locmem으로 바꾼다.
 # 배포는 Gmail SMTP: EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend와 앱 비밀번호.

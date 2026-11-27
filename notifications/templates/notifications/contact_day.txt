@@ -1,0 +1,22 @@
+{% autoescape off %}{{ application.applicant_name }} 선생님, 안녕하세요.
+히어로스쿨입니다. 오늘 담당자가 연락드립니다.
+
+{{ application.organization_name }}에서 신청하신 교육의 수업 일정과 세부 내용을 함께 정하려고 합니다.
+통화 전에 아래 내용을 한번 살펴봐 주세요.
+
+■ 교육 요약
+- 교육: {{ program.name }}
+- 소개: {{ program.summary }}{% if program.audience %}
+- 추천 대상: {{ program.audience }}{% endif %}{% if program.class_format %}
+- 수업 형태 안내: {{ program.class_format }}{% endif %}
+
+■ 신청 내용
+- 기관: {{ application.organization_name }}
+- 수업 대상: {{ application.target_grade }} / {{ application.class_count }}학급
+- 수업 형태: {{ application.get_class_type_display }} / {{ application.session_count }}{% if application.class_type == "multi" %}회차{% else %}교시{% endif %}
+- 수업 희망일: {{ preferred_class_date }}
+- 연락 가능 날짜: {{ contact_date }}
+
+이 메일은 발신 전용입니다.
+히어로스쿨 드림
+{% endautoescape %}

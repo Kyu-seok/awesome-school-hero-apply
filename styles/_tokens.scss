@@ -1,0 +1,54 @@
+// 색, 글꼴, 간격. "학습만화 히어로" 톤: 하늘색 스크린톤, 먹선(ink), 히어로 노랑, 망토 빨강.
+
+$ink: #15213b;
+$ink-soft: #3a4763;
+$sky: #9fd6ff;
+$sky-pale: #e6f4ff;
+$cobalt: #2b57e8;
+$cobalt-deep: #1d3fb8;
+$sun: #ffcf26;
+$sun-pale: #fff4c2;
+$coral: #ff5b4a;
+$mint: #2bd4a4;
+$paper: #ffffff;
+$danger: #c4281c;
+$danger-pale: #fff0ee;
+
+$font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+  "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+$line: 3px;
+$radius: 10px;
+$radius-sm: 6px;
+
+$gutter: clamp(16px, 4vw, 40px);
+$content: 1160px;
+
+$bp-md: 720px;
+$bp-lg: 1024px;
+
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+@mixin md {
+  @media (min-width: $bp-md) {
+    @content;
+  }
+}
+
+@mixin lg {
+  @media (min-width: $bp-lg) {
+    @content;
+  }
+}
+
+// 학습만화 인쇄의 망점. 색 면 위에 얹는 재질이다.
+@mixin halftone($color: $ink, $alpha: 0.12, $size: 14px) {
+  background-image: radial-gradient(rgba($color, $alpha) 1.4px, transparent 1.8px);
+  background-size: $size $size;
+}
+
+@mixin panel {
+  background: $paper;
+  border: $line solid $ink;
+  border-radius: $radius;
+}

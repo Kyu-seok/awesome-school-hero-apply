@@ -8,3 +8,5 @@
 .ruff_cache
 staticfiles
 media
+node_modules
+static/css
