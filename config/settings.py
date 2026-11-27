@@ -113,6 +113,19 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+# 캐시. 신청 접수 throttle 기록이 여기에 남는다. 배포는 gunicorn 워커가 여럿이라 워커끼리
+# 같은 기록을 보도록 redis에 둔다(CACHE_URL, 브로커와 다른 DB 번호). 비우면 프로세스 메모리.
+CACHE_URL = os.environ.get("CACHE_URL", "")
+if CACHE_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": CACHE_URL,
+        }
+    }
+else:
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
 # 익명 신청 접수 throttle 비율(DRF 형식, 예: "10/hour").
 APPLICATION_SUBMIT_THROTTLE_RATE = os.environ.get("APPLICATION_SUBMIT_THROTTLE_RATE", "10/hour")
 

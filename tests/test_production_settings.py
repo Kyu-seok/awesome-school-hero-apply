@@ -69,3 +69,35 @@ def test_env_example_treats_cloudflare_forwarded_https_as_secure():
 
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip().splitlines()[-1] == "https://hero-school.kyuships.com/"
+
+
+def _run_settings_script(script: str, **env_overrides: str) -> str:
+    env = {**os.environ, **env_overrides}
+    result = subprocess.run(
+        [sys.executable, "manage.py", "shell", "-c", script],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    return result.stdout.strip().splitlines()[-1]
+
+
+def test_cache_url_puts_shared_cache_on_redis():
+    """배포는 gunicorn 워커가 여럿이라 신청 접수 throttle 기록을 redis 캐시에 같이 둔다."""
+    script = (
+        "from django.conf import settings;"
+        "c = settings.CACHES['default'];"
+        "print(c['BACKEND'], c['LOCATION'])"
+    )
+
+    output = _run_settings_script(script, CACHE_URL="redis://redis:6379/1")
+
+    assert output == "django.core.cache.backends.redis.RedisCache redis://redis:6379/1"
+
+
+def test_without_cache_url_cache_stays_in_process(settings):
+    assert settings.CACHES["default"]["BACKEND"] == (
+        "django.core.cache.backends.locmem.LocMemCache"
+    )
