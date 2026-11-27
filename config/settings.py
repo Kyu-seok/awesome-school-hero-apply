@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "programs",
     "applications",
+    "backoffice",
     "notifications",
 ]
 
@@ -114,6 +116,11 @@ APPLICATION_SUBMIT_THROTTLE_RATE = os.environ.get("APPLICATION_SUBMIT_THROTTLE_R
 # 랜딩 페이지(/)에서 보여줄 대표 교육의 슬러그.
 LANDING_PROGRAM_SLUG = os.environ.get("LANDING_PROGRAM_SLUG", "ai-hero")
 
+# 관리자 페이지(/manage/)는 Django 기본 로그인을 쓴다.
+LOGIN_URL = "/manage/login/"
+LOGIN_REDIRECT_URL = "/manage/"
+LOGOUT_REDIRECT_URL = "/manage/login/"
+
 # Celery. 로컬 compose와 배포에서는 redis 서비스를 브로커로 쓴다.
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER")
@@ -128,6 +135,13 @@ CELERY_TASK_PUBLISH_RETRY_POLICY = {
     "interval_max": 1,
 }
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+# beat 스케줄. crontab은 CELERY_TIMEZONE(Asia/Seoul) 기준이다.
+CELERY_BEAT_SCHEDULE = {
+    "send-todays-contact-day-emails": {
+        "task": "notifications.tasks.send_todays_contact_day_emails",
+        "schedule": crontab(hour=9, minute=0),
+    },
+}
 
 # 메일. 로컬 기본값은 console 백엔드(worker 로그에 찍힌다). 테스트는 Django가 locmem으로 바꾼다.
 # 배포는 Gmail SMTP: EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend와 앱 비밀번호.

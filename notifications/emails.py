@@ -30,6 +30,23 @@ def send_receipt_email(application: Application) -> None:
     )
 
 
+def send_contact_day_email(application: Application) -> None:
+    """연락일 안내 메일: 오늘 담당자가 연락드린다고 알리고 교육을 요약해 준다."""
+    program = application.program
+    context = {
+        "application": application,
+        "program": program,
+        "preferred_class_date": _long_date(application.preferred_class_date),
+        "contact_date": _short_date(application.contact_date),
+    }
+    _send(
+        template="notifications/contact_day",
+        subject=f"[히어로스쿨] 오늘 {program.name} 교육 신청 건으로 연락드립니다",
+        to=application.applicant_email,
+        context=context,
+    )
+
+
 def _send(*, template: str, subject: str, to: str, context: dict) -> None:
     message = EmailMultiAlternatives(
         subject=subject,

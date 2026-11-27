@@ -5,8 +5,11 @@ API(serializer)와 관리자 페이지는 규칙을 다시 구현하지 않고 �
 
 진입점
 - receive_application: 신청 접수(검증, 중복 확인, 저장, 접수 확인 메일 예약)
+- send_todays_contact_day_emails: 오늘의 연락일 안내 발송
+- change_status: 상태 변경(운영자가 상태와 운영 메모를 바꾼다)
 """
 
+import logging
 from datetime import date, timedelta
 
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -14,8 +17,11 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from applications.models import Application
+from notifications import emails
 from notifications.tasks import schedule_receipt_email
 from programs.models import Program
+
+logger = logging.getLogger(__name__)
 
 MIN_LEAD_DAYS = 21
 MIN_CLASS_COUNT = 1
@@ -99,6 +105,73 @@ def receive_application(
         # 동시에 들어온 같은 신청: 먼저 확인했지만 DB 부분 유니크 제약이 최종 판정한다.
         if "unique_active_application" in str(exc):
             raise ValidationError({NON_FIELD_ERRORS: [DUPLICATE_MESSAGE]}) from exc
+        raise
+    return application
+
+
+def send_todays_contact_day_emails() -> int:
+    """오늘의 연락일 안내 발송. 보낸 메일 수를 돌려준다.
+
+    대상은 연락 가능 날짜가 오늘이고, 접수됨 상태이고, 아직 안내를 받지 않은 신청이다.
+    신청마다 따로 트랜잭션을 열고 행을 잠근 채 대상인지 다시 확인한 뒤 보내고 발송 시각을
+    기록한다. 그래서 두 번 실행하거나 동시에 실행돼도 신청마다 한 통만 나간다.
+    한 신청의 발송이 실패하면 그 신청의 트랜잭션만 되돌리고(발송 시각은 빈 채로 남아 다음
+    실행 때 다시 대상이 된다) 나머지 신청은 계속 보낸다.
+    """
+    today = timezone.localdate()
+    sent = 0
+    for application_id in _contact_day_email_targets(today).values_list("pk", flat=True):
+        try:
+            with transaction.atomic():
+                application = (
+                    _contact_day_email_targets(today)
+                    .select_related("program")
+                    .select_for_update(skip_locked=True, of=("self",))
+                    .filter(pk=application_id)
+                    .first()
+                )
+                if application is None:
+                    # 그사이 상태가 바뀌었거나, 이미 보냈거나, 다른 실행이 보내는 중이다.
+                    continue
+                emails.send_contact_day_email(application)
+                application.contact_day_email_sent_at = timezone.now()
+                application.save(update_fields=["contact_day_email_sent_at", "updated_at"])
+            sent += 1
+        except Exception:
+            logger.exception("연락일 안내 메일 발송 실패: 신청 %s", application_id)
+    return sent
+
+
+def _contact_day_email_targets(today: date):
+    return Application.objects.filter(
+        contact_date=today,
+        status=Application.Status.RECEIVED,
+        contact_day_email_sent_at__isnull=True,
+    )
+
+
+def change_status(
+    application: Application, *, status: str, operator_memo: str | None = None
+) -> Application:
+    """운영자가 신청 상태(와 운영 메모)를 바꾼다. 상태 간 전이 제약은 두지 않는다.
+
+    operator_memo가 None이면 메모는 그대로 둔다. 알 수 없는 상태면 ValidationError를 던진다.
+    연락 완료 등 접수됨이 아닌 상태가 되면 연락일 안내 발송 대상에서 자연히 빠진다.
+    """
+    if status not in Application.Status.values:
+        raise ValidationError({"status": ["알 수 없는 상태입니다."]})
+    application.status = status
+    update_fields = ["status", "updated_at"]
+    if operator_memo is not None:
+        application.operator_memo = operator_memo
+        update_fields.append("operator_memo")
+    try:
+        with transaction.atomic():
+            application.save(update_fields=update_fields)
+    except IntegrityError as exc:
+        # 취소된 신청을 되살렸는데 같은 조건의 활성 신청이 이미 있는 경우.
+        if "unique_active_application" in str(exc):
+            raise ValidationError({"status": [DUPLICATE_MESSAGE]}) from exc
         raise
     return application
 

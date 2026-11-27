@@ -11,6 +11,7 @@ from programs.views import landing
 urlpatterns = [
     path("", landing, name="landing"),
     path("admin/", admin.site.urls),
+    path("manage/", include("backoffice.urls")),
     path("api/", include(program_api)),
     path("api/", include(application_api)),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
