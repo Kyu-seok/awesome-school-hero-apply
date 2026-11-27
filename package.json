@@ -1,0 +1,12 @@
+{
+  "name": "hero-school-styles",
+  "private": true,
+  "description": "SCSS 빌드 전용. 결과물 static/css/는 커밋하지 않고 Docker 이미지 빌드에서 만든다.",
+  "scripts": {
+    "build:css": "sass --no-source-map --style=compressed styles/site.scss static/css/site.css",
+    "watch:css": "sass --watch styles/site.scss static/css/site.css"
+  },
+  "devDependencies": {
+    "sass": "1.107.1"
+  }
+}

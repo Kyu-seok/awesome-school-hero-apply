@@ -1,0 +1,328 @@
+@use "tokens" as *;
+
+$topbar-height: 60px;
+
+section[id] {
+  scroll-margin-top: $topbar-height + 12px;
+}
+
+// 상단 바 ------------------------------------------------------------------
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: $paper;
+  border-bottom: $line solid $ink;
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: $content;
+  height: $topbar-height;
+  margin: 0 auto;
+  padding: 0 $gutter;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $ink;
+  font-size: 1.125rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.wordmark__mark {
+  width: 30px;
+  height: 30px;
+  padding: 3px;
+  background: $sun;
+  border: 2.5px solid $ink;
+  border-radius: 50%;
+
+  path {
+    fill: $ink;
+  }
+}
+
+.topbar__link {
+  padding: 6px 16px;
+  border: 2.5px solid $ink;
+  border-radius: 999px;
+  color: $ink;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color 160ms $ease-out;
+
+  &:hover {
+    background: $sun;
+  }
+}
+
+// 히어로 -------------------------------------------------------------------
+
+.hero {
+  @include halftone($ink, 0.1);
+  background-color: $sky;
+  border-bottom: $line solid $ink;
+  overflow: hidden;
+}
+
+.hero__inner {
+  display: grid;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: center;
+  max-width: $content;
+  margin: 0 auto;
+  padding: clamp(36px, 7vw, 88px) $gutter clamp(44px, 7vw, 96px);
+
+  @include lg {
+    grid-template-columns: 1.05fr 1fr;
+  }
+}
+
+.hero__title {
+  font-size: clamp(2.75rem, 1.5rem + 6.2vw, 5.25rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+// 한 줄 소개는 만화 말풍선에 담는다. 꼬리는 테두리 삼각형 두 겹(먹선, 흰 면)이다.
+.hero__summary {
+  position: relative;
+  max-width: 30rem;
+  margin-top: clamp(20px, 3vw, 28px);
+  padding: 16px 20px;
+  background: $paper;
+  border: $line solid $ink;
+  border-radius: 22px;
+  font-size: clamp(1.125rem, 1rem + 0.7vw, 1.4rem);
+  font-weight: 700;
+  line-height: 1.45;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 36px;
+    border-style: solid;
+    border-color: transparent;
+  }
+
+  &::before {
+    border-width: 18px 18px 0 0;
+    border-top-color: $ink;
+  }
+
+  &::after {
+    left: 39.5px;
+    margin-top: -1px;
+    border-width: 12.5px 12.5px 0 0;
+    border-top-color: $paper;
+  }
+}
+
+.hero .cta {
+  margin-top: clamp(32px, 4vw, 40px);
+}
+
+.hero__note {
+  max-width: 26rem;
+  margin-top: 14px;
+  color: $ink-soft;
+  font-size: 0.9375rem;
+}
+
+.hero__art {
+  justify-self: center;
+  width: min(100%, 520px);
+
+  img {
+    width: 100%;
+    border-radius: $radius;
+    transform: rotate(1.5deg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    img {
+      animation: hero-pop 700ms $ease-out both;
+    }
+  }
+}
+
+// 등장 연출은 이것 하나: 그림이 "펑" 하고 제자리에 붙는다. 처음부터 보이는 상태에서 시작한다.
+@keyframes hero-pop {
+  from {
+    transform: rotate(-3deg) scale(0.94);
+  }
+  to {
+    transform: rotate(1.5deg) scale(1);
+  }
+}
+
+// 교육 소개와 추천 대상 ------------------------------------------------------
+
+.fit {
+  padding: clamp(56px, 9vw, 112px) 0;
+}
+
+.fit__grid {
+  display: grid;
+  gap: clamp(28px, 5vw, 64px);
+
+  @include lg {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: start;
+  }
+}
+
+.fit__about {
+  max-width: 38rem;
+
+  .section__title {
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: $ink-soft;
+    font-size: 1.0625rem;
+  }
+
+  p + p {
+    margin-top: 1em;
+  }
+}
+
+.fit__facts {
+  display: grid;
+  gap: 14px;
+
+  @include lg {
+    margin-top: 8px;
+  }
+}
+
+.fact {
+  @include panel;
+  padding: 18px 20px 20px;
+  background: $sky-pale;
+
+  &:nth-child(2) {
+    background: $sun-pale;
+  }
+
+  dt {
+    display: inline-block;
+    padding: 2px 12px;
+    background: $ink;
+    color: $paper;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  dd {
+    margin-top: 10px;
+    font-size: 1.1875rem;
+    font-weight: 750;
+    line-height: 1.45;
+  }
+}
+
+// 커리큘럼: 한 교시가 만화 한 칸이다 ------------------------------------------
+
+.curriculum {
+  @include halftone($paper, 0.13);
+  padding: clamp(56px, 9vw, 112px) 0;
+  background-color: $cobalt;
+  border-block: $line solid $ink;
+
+  .section__title {
+    color: $paper;
+  }
+}
+
+.strip {
+  display: grid;
+  gap: 14px;
+  margin-top: clamp(24px, 4vw, 40px);
+  padding: 0;
+  list-style: none;
+
+  @include md {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include lg {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+.strip__panel {
+  @include panel;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 22px 24px;
+
+  // 첫 칸과 마지막 칸을 넓게 잡아 만화 페이지처럼 칸 크기에 리듬을 준다.
+  @include md {
+    &:first-child,
+    &:last-child {
+      grid-column: span 2;
+    }
+  }
+
+  @include lg {
+    min-height: 210px;
+
+    &:first-child,
+    &:last-child {
+      background: $sun-pale;
+    }
+  }
+}
+
+.strip__period {
+  align-self: flex-start;
+  padding: 2px 14px;
+  background: $sun;
+  border: 2.5px solid $ink;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+.strip__title {
+  font-size: 1.3125rem;
+  font-weight: 850;
+}
+
+.strip__text {
+  color: $ink-soft;
+}
+
+// 바닥글 -------------------------------------------------------------------
+
+.footer {
+  padding: 36px 0 44px;
+  background: $ink;
+  color: rgba($paper, 0.78);
+  font-size: 0.9375rem;
+}
+
+.footer__brand {
+  margin-bottom: 4px;
+  color: $paper;
+  font-weight: 900;
+  font-size: 1.125rem;
+}

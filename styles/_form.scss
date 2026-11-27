@@ -1,0 +1,345 @@
+@use "tokens" as *;
+
+// 신청 섹션 -----------------------------------------------------------------
+
+.apply {
+  @include halftone($ink, 0.08);
+  padding: clamp(56px, 9vw, 112px) 0;
+  background-color: $sun;
+}
+
+.apply__inner {
+  display: grid;
+  gap: clamp(24px, 4vw, 48px);
+
+  @include lg {
+    grid-template-columns: 1fr 2fr;
+    align-items: start;
+  }
+}
+
+.apply__intro {
+  max-width: 32rem;
+
+  p {
+    margin-top: 14px;
+    font-size: 1.0625rem;
+  }
+
+  @include lg {
+    position: sticky;
+    top: 96px;
+  }
+}
+
+.apply__panel {
+  @include panel;
+  min-width: 0;
+  padding: clamp(20px, 4vw, 40px);
+  box-shadow: 0 18px 40px -24px rgba($ink, 0.55);
+}
+
+// 폼 -------------------------------------------------------------------------
+
+.form {
+  display: grid;
+  gap: 8px;
+}
+
+.form__group {
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 24px;
+  border: 0;
+
+  & + & {
+    padding-top: 24px;
+    border-top: 2px dashed rgba($ink, 0.25);
+  }
+
+  > :not(legend) {
+    clear: both;
+  }
+
+  legend {
+    float: left; // legend가 fieldset 테두리에 걸리지 않게 일반 블록처럼 흐르게 한다.
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 0;
+    font-size: 1.1875rem;
+    font-weight: 850;
+    letter-spacing: -0.02em;
+  }
+}
+
+.optional {
+  color: $ink-soft;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.form__row {
+  display: grid;
+  gap: 18px;
+
+  @include md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 18px;
+  }
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+
+  &--wide {
+    grid-column: 1 / -1;
+  }
+
+  > label {
+    font-weight: 750;
+  }
+}
+
+.field__hint {
+  color: $ink-soft;
+  font-size: 0.875rem;
+  line-height: 1.5;
+
+  strong {
+    color: $ink;
+    font-weight: 800;
+    background: linear-gradient(transparent 55%, rgba($sun, 0.7) 55%);
+  }
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  padding: 11px 14px;
+  background: $paper;
+  border: 2px solid $ink;
+  border-radius: $radius-sm;
+  color: $ink;
+  font: inherit;
+  font-size: 1rem; // 16px 미만이면 iOS가 확대한다.
+  caret-color: $cobalt;
+  transition:
+    border-color 140ms $ease-out,
+    background-color 140ms $ease-out;
+
+  &::placeholder {
+    color: #6b7690;
+  }
+
+  &:hover {
+    background: $sky-pale;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba($cobalt, 0.35);
+    outline-offset: 0;
+    border-color: $cobalt;
+    background: $paper;
+  }
+
+  &[aria-invalid="true"] {
+    border-color: $danger;
+    background: $danger-pale;
+  }
+}
+
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+}
+
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 44px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, $ink 50%),
+    linear-gradient(135deg, $ink 50%, transparent 50%);
+  background-position:
+    calc(100% - 22px) 50%,
+    calc(100% - 16px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+// 필드 오류는 해당 입력 바로 아래에 붙는다. 비어 있으면 자리를 차지하지 않는다.
+.form-error {
+  color: $danger;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.45;
+
+  &:empty {
+    display: none;
+  }
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 1.05em;
+    height: 1.05em;
+    margin-right: 6px;
+    vertical-align: -0.17em;
+    background: currentColor;
+    // 느낌표 원(작성한 SVG 마스크)
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm-1 4v5h2V4H7Zm0 6.5V12h2v-1.5H7Z'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+}
+
+.form__alert {
+  padding: 14px 16px;
+  background: $danger-pale;
+  border: 2px solid $danger;
+  border-radius: $radius-sm;
+  color: $danger;
+  font-weight: 750;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.privacy {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  background: $sky-pale;
+  border-radius: $radius-sm;
+  font-size: 0.9375rem;
+
+  div {
+    display: grid;
+    gap: 2px;
+
+    @include md {
+      grid-template-columns: 6.5rem 1fr;
+      gap: 12px;
+    }
+  }
+
+  dt {
+    font-weight: 800;
+  }
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-weight: 750;
+  cursor: pointer;
+
+  input {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    accent-color: $cobalt;
+  }
+}
+
+.form__submit {
+  width: 100%;
+  margin-top: 8px;
+
+  @include md {
+    justify-self: start;
+    width: auto;
+    min-width: 240px;
+  }
+}
+
+.button__spinner {
+  display: none;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba($ink, 0.25);
+  border-top-color: $ink;
+  border-radius: 50%;
+}
+
+.form[aria-busy="true"] .button__spinner {
+  display: inline-block;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: spin 800ms linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 접수 완료 ------------------------------------------------------------------
+
+.done {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: clamp(12px, 3vw, 32px) 0;
+  text-align: center;
+}
+
+.done__art {
+  width: 160px;
+  border-radius: $radius-sm;
+}
+
+.done__title {
+  font-size: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+  font-weight: 900;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.done__when {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.5;
+
+  strong {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 4px 14px;
+    background: $sun;
+    border: $line solid $ink;
+    border-radius: $radius-sm;
+    font-size: clamp(1.375rem, 1.1rem + 1.4vw, 1.875rem);
+    font-weight: 900;
+  }
+}
+
+.done__note {
+  max-width: 28rem;
+  color: $ink-soft;
+  font-size: 0.9375rem;
+}

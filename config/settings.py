@@ -94,6 +94,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+# 저장소 공용 정적 파일. static/css/는 SCSS 빌드 결과라 커밋하지 않는다(npm run build:css).
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", BASE_DIR / "media"))

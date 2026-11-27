@@ -1,3 +1,11 @@
+# SCSS 빌드 단계: styles/*.scss를 static/css/site.css로 컴파일한다. 결과물은 커밋하지 않는다.
+FROM node:22-slim AS styles
+WORKDIR /build
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY styles ./styles
+RUN npm run build:css
+
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:0.13 /uv /usr/local/bin/uv
@@ -15,6 +23,7 @@ COPY pyproject.toml uv.lock .python-version ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
+COPY --from=styles /build/static/css ./static/css
 
 # 앱은 root가 아닌 사용자로 돈다. 정적·미디어 디렉터리를 미리 만들어 두면
 # 처음 붙는 named volume이 이 소유권을 물려받는다.
