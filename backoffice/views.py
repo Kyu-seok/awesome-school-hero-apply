@@ -13,6 +13,7 @@ from applications.filters import ApplicationFilterForm
 from applications.models import Application
 from backoffice.access import operator_required
 from backoffice.forms import StatusChangeForm
+from exports import services as exports
 from exports.sheets import get_sheet
 from exports.tasks import export_applications_to_sheet
 
@@ -46,6 +47,7 @@ def application_list(request):
             "today": timezone.localdate(),
             "filter_form": filter_form,
             "page_obj": page_obj,
+            "last_export": exports.last_export(),
         },
     )
 
@@ -94,10 +96,12 @@ def export_to_sheet(request):
         logger.error("시트 내보내기 설정 오류: %s", exc)
         messages.error(request, f"시트 내보내기가 설정되지 않았습니다: {exc}")
         return _back_to_list(request)
+    export = exports.start_export()
     try:
-        export_applications_to_sheet.delay()
-    except Exception:
+        export_applications_to_sheet.delay(export.pk)
+    except Exception as exc:
         logger.exception("시트 내보내기 작업 예약 실패")
+        exports.fail_export(export.pk, f"작업을 예약하지 못했습니다({type(exc).__name__})")
         messages.error(request, "내보내기를 시작하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")
     else:
         messages.success(request, "내보내기를 시작했습니다. 잠시 뒤 시트에서 확인하세요.")

@@ -210,3 +210,41 @@ def test_export_with_incomplete_google_settings_tells_operator(operator_client, 
     page = response.content.decode()
     assert "내보내기를 시작했습니다" not in page
     assert "시트 내보내기가 설정되지 않았습니다" in page
+
+
+def _export_status(page: str) -> str:
+    """목록 페이지의 "마지막 내보내기" 한 줄."""
+    marker = "마지막 내보내기:"
+    assert marker in page, page
+    return " ".join(page.split(marker, 1)[1].split("<", 1)[0].split())
+
+
+def test_list_page_shows_last_export_result(operator_client):
+    make_application(organization_name="히어로초등학교")
+    make_application(organization_name="용감중학교")
+    with time_machine.travel(datetime(2026, 12, 1, 10, 3, tzinfo=KST), tick=False):
+        operator_client.post(EXPORT_URL)
+
+    page = operator_client.get("/manage/").content.decode()
+
+    assert _export_status(page) == "12/1 10:03 완료 · 2건"
+
+
+def test_list_page_shows_failed_export(operator_client, settings, tmp_path):
+    settings.EXPORTS_SHEET_BACKEND = "google"
+    settings.GOOGLE_SHEETS_SPREADSHEET_ID = "sheet-id"
+    settings.GOOGLE_SHEETS_CREDENTIALS_FILE = str(tmp_path / "missing-key.json")
+    make_application()
+    with time_machine.travel(datetime(2026, 12, 1, 10, 3, tzinfo=KST), tick=False):
+        operator_client.post(EXPORT_URL)
+
+    page = operator_client.get("/manage/").content.decode()
+
+    assert _export_status(page) == "12/1 10:03 실패"
+    assert "missing-key.json" in page
+
+
+def test_list_page_shows_no_export_status_before_first_export(operator_client):
+    page = operator_client.get("/manage/").content.decode()
+
+    assert "마지막 내보내기:" not in page

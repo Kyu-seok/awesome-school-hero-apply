@@ -10,6 +10,12 @@
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <button type="submit" title="공유 Google 시트를 현재 전체 신청 목록으로 덮어씁니다">내보내기</button>
+    {% if last_export %}
+    <small class="export-status{% if last_export.failed %} errorlist{% endif %}"{% if last_export.failed %} title="{{ last_export.error }}"{% endif %}>마지막 내보내기:
+      {% if last_export.is_running %}{{ last_export.started_at|date:"n/j H:i" }} 진행 중
+      {% elif last_export.failed %}{{ last_export.finished_at|date:"n/j H:i" }} 실패
+      {% else %}{{ last_export.finished_at|date:"n/j H:i" }} 완료 · {{ last_export.row_count }}건{% endif %}</small>
+    {% endif %}
   </form>
 </div>
 

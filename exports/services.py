@@ -5,6 +5,7 @@ from datetime import datetime
 from django.utils import timezone
 
 from applications.models import Application
+from exports.models import SheetExport
 from exports.sheets import Rows, get_sheet
 
 HEADER = [
@@ -66,3 +67,23 @@ def export_applications() -> int:
     rows = build_rows()
     get_sheet().overwrite(rows)
     return len(rows) - 1
+
+
+def start_export() -> SheetExport:
+    """내보내기 요청을 기록한다. 결과는 finish_export나 fail_export가 채운다."""
+    return SheetExport.objects.create()
+
+
+def finish_export(export_id: int | None, row_count: int) -> None:
+    SheetExport.objects.filter(pk=export_id).update(
+        finished_at=timezone.now(), row_count=row_count, error=""
+    )
+
+
+def fail_export(export_id: int | None, error: str) -> None:
+    SheetExport.objects.filter(pk=export_id).update(finished_at=timezone.now(), error=error)
+
+
+def last_export() -> SheetExport | None:
+    """가장 최근에 요청한 내보내기(없으면 None)."""
+    return SheetExport.objects.first()
