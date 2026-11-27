@@ -1,5 +1,13 @@
-# 로컬 개발용. 배포 구성(nginx, gunicorn, redis, celery)은 이후 티켓에서 더한다.
+# 로컬 개발용. 배포 구성(nginx, gunicorn)은 이후 티켓에서 더한다.
 name: hero-school
+
+x-app-env: &app-env
+  DATABASE_URL: postgres://hero_school:hero_school@db:5432/hero_school
+  CELERY_BROKER_URL: redis://redis:6379/0
+  DJANGO_DEBUG: "1"
+  DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+  # console 백엔드: 메일은 보내지 않고 worker 로그에 찍는다.
+  EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
 
 services:
   db:
@@ -16,16 +24,33 @@ services:
       timeout: 3s
       retries: 20
 
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
   web:
     build: .
-    environment:
-      DATABASE_URL: postgres://hero_school:hero_school@db:5432/hero_school
-      DJANGO_DEBUG: "1"
-      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+    environment: *app-env
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: celery -A config worker --loglevel=info --concurrency=2
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
 volumes:
