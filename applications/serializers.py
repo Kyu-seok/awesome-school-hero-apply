@@ -68,3 +68,56 @@ def _as_drf_errors(exc: DjangoValidationError) -> dict[str, list[str]]:
     if NON_FIELD_ERRORS in errors:
         errors[api_settings.NON_FIELD_ERRORS_KEY] = errors.pop(NON_FIELD_ERRORS)
     return errors
+
+
+class ProgramRefSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Program
+        fields = ["slug", "name"]
+        read_only_fields = fields
+
+
+class OperatorApplicationSerializer(serializers.ModelSerializer):
+    """운영자 API의 신청 표현. 쓸 수 있는 필드는 상태와 운영 메모뿐이고, 저장은
+    services.change_status가 맡는다. 나머지 필드는 읽기 전용이라 보내도 무시된다."""
+
+    program = ProgramRefSerializer(read_only=True)
+    status = serializers.ChoiceField(choices=Application.Status.choices, label="상태")
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    operator_memo = serializers.CharField(allow_blank=True, required=False, label="운영 메모")
+
+    class Meta:
+        model = Application
+        fields = [
+            "id",
+            "program",
+            "organization_name",
+            "applicant_name",
+            "applicant_email",
+            "applicant_phone",
+            "target_grade",
+            "class_count",
+            "class_type",
+            "session_count",
+            "preferred_class_date",
+            "contact_date",
+            "request_note",
+            "privacy_agreed_at",
+            "status",
+            "status_display",
+            "operator_memo",
+            "contact_day_email_sent_at",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [f for f in fields if f not in ("status", "operator_memo")]
+
+    def update(self, instance, validated_data):
+        try:
+            return services.change_status(
+                instance,
+                status=validated_data.get("status", instance.status),
+                operator_memo=validated_data.get("operator_memo"),
+            )
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(_as_drf_errors(exc)) from exc

@@ -1,0 +1,36 @@
+{% extends "backoffice/base.html" %}
+{% block title %}{{ application.organization_name }} 신청{% endblock %}
+{% block content %}
+<p><a href="{% url 'backoffice:application-list' %}">← 목록</a></p>
+<h1>{{ application.organization_name }} <small>· {{ application.get_status_display }}</small></h1>
+
+<h2>상태 변경</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <p>{{ form.status.label_tag }} {{ form.status }} {{ form.status.errors }}</p>
+  <p>{{ form.operator_memo.label_tag }}<br>{{ form.operator_memo }} {{ form.operator_memo.errors }}</p>
+  <button type="submit">저장</button>
+</form>
+
+<h2>신청 내용</h2>
+<dl class="fields">
+  <dt>신청 번호</dt><dd>{{ application.pk }}</dd>
+  <dt>교육</dt><dd>{{ application.program.name }}</dd>
+  <dt>기관명</dt><dd>{{ application.organization_name }}</dd>
+  <dt>신청자 이름</dt><dd>{{ application.applicant_name }}</dd>
+  <dt>신청자 이메일</dt><dd><a href="mailto:{{ application.applicant_email }}">{{ application.applicant_email }}</a></dd>
+  <dt>신청자 연락처</dt><dd><a href="tel:{{ application.applicant_phone }}">{{ application.applicant_phone }}</a></dd>
+  <dt>수업 대상(학년)</dt><dd>{{ application.target_grade }}</dd>
+  <dt>학급 수</dt><dd>{{ application.class_count }}</dd>
+  <dt>수업 형태</dt><dd>{{ application.get_class_type_display }}</dd>
+  <dt>교시 수 또는 회차 수</dt><dd>{{ application.session_count }}</dd>
+  <dt>수업 희망일</dt><dd>{{ application.preferred_class_date|date:"Y-m-d (D)" }}</dd>
+  <dt>연락 가능 날짜</dt><dd>{{ application.contact_date|date:"Y-m-d (D)" }}</dd>
+  <dt>요청 사항</dt><dd>{{ application.request_note|default:"-" }}</dd>
+  <dt>개인정보 동의 시각</dt><dd>{{ application.privacy_agreed_at|date:"Y-m-d H:i" }}</dd>
+  <dt>접수 시각</dt><dd>{{ application.created_at|date:"Y-m-d H:i" }}</dd>
+  <dt>연락일 안내 메일 발송 시각</dt><dd>{{ application.contact_day_email_sent_at|date:"Y-m-d H:i"|default:"발송 전" }}</dd>
+  <dt>최근 수정 시각</dt><dd>{{ application.updated_at|date:"Y-m-d H:i" }}</dd>
+</dl>
+{% endblock %}

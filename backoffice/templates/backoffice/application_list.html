@@ -1,0 +1,61 @@
+{% extends "backoffice/base.html" %}
+{% block title %}{% if tab == "all" %}전체 신청{% else %}오늘 연락할 신청{% endif %}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <nav class="tabs" aria-label="목록 탭">
+    <a href="{% url 'backoffice:application-list' %}" {% if tab == "today" %}aria-current="page"{% endif %}>오늘 연락할 신청 ({{ today|date:"n/j" }})</a>
+    <a href="?tab=all" {% if tab == "all" %}aria-current="page"{% endif %}>전체</a>
+  </nav>
+  {# 내보내기(Google Sheets)는 #10에서 연결한다. #}
+  <button type="button" disabled title="준비 중">내보내기</button>
+</div>
+
+<form method="get" class="filters">
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <label>{{ filter_form.status.label }} {{ filter_form.status }}</label>
+  <label>{{ filter_form.program.label }} {{ filter_form.program }}</label>
+  {% if tab == "all" %}
+  <label>{{ filter_form.contact_date.label }} {{ filter_form.contact_date }}</label>
+  {% endif %}
+  <button type="submit">필터 적용</button>
+  <a href="?tab={{ tab }}">초기화</a>
+</form>
+{% if filter_form.errors %}
+<ul class="errorlist">{% for field in filter_form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}</ul>
+{% endif %}
+
+<p>{{ page_obj.paginator.count }}건</p>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>접수 시각</th><th>기관명</th><th>신청자</th><th>교육</th>
+      <th>수업 희망일</th><th>연락 가능 날짜</th><th>상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for application in page_obj %}
+    <tr>
+      <td>{{ application.created_at|date:"Y-m-d H:i" }}</td>
+      <td><a href="{% url 'backoffice:application-detail' application.pk %}">{{ application.organization_name }}</a></td>
+      <td>{{ application.applicant_name }}<br>{{ application.applicant_phone }}</td>
+      <td>{{ application.program.name }}</td>
+      <td>{{ application.preferred_class_date|date:"Y-m-d" }}</td>
+      <td>{{ application.contact_date|date:"Y-m-d (D)" }}</td>
+      <td>{{ application.get_status_display }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7">{% if tab == "today" %}오늘 연락할 신청이 없습니다.{% else %}신청이 없습니다.{% endif %}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav aria-label="페이지">
+  {% if page_obj.has_previous %}<a href="{% querystring page=page_obj.previous_page_number %}">이전</a>{% endif %}
+  <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="{% querystring page=page_obj.next_page_number %}">다음</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
