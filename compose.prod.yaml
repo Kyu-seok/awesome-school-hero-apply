@@ -64,6 +64,13 @@ services:
   worker:
     <<: *django
     command: celery -A config worker --loglevel=info --concurrency=2
+    # volumes:는 앵커의 마운트를 통째로 바꾸므로 정적·미디어 마운트를 다시 적는다.
+    # 서비스 계정 키는 저장소 밖에 두고 읽기 전용으로 마운트한다(.env의 GOOGLE_SHEETS_KEY_PATH).
+    # 컨테이너는 uid 1000(app)으로 돌므로 키 파일을 uid 1000이 읽을 수 있어야 한다.
+    volumes:
+      - static:/app/staticfiles
+      - media:/app/media
+      - ${GOOGLE_SHEETS_KEY_PATH:-/dev/null}:/run/secrets/google-sheets.json:ro
 
   # beat는 한 개만 띄운다(둘이면 예약 작업이 두 번 나간다). 이미지가 root가 아닌 사용자로 돌고
   # /app은 쓸 수 없으므로 스케줄 파일은 /tmp에 둔다.

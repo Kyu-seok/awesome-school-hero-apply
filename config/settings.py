@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "applications",
     "backoffice",
     "notifications",
+    "exports",
 ]
 
 MIDDLEWARE = [
@@ -156,3 +157,11 @@ EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
 # SMTP 서버가 느려도 worker가 한 메일에 오래 묶이지 않게 한다.
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "히어로스쿨 <kyuships@gmail.com>")
+
+# 신청 목록 내보내기(스프레드시트). "memory"는 프로세스 메모리에만 쓴다(테스트, 로컬 기본값).
+# 배포는 "google": 서비스 계정 JSON 키 경로(저장소 밖, 컨테이너에 마운트)와 시트 ID가 필요하다.
+EXPORTS_SHEET_BACKEND = os.environ.get("EXPORTS_SHEET_BACKEND", "memory")
+GOOGLE_SHEETS_CREDENTIALS_FILE = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_FILE", "")
+GOOGLE_SHEETS_SPREADSHEET_ID = os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID", "")
+# 비우면 시트의 첫 번째 탭에 쓴다.
+GOOGLE_SHEETS_WORKSHEET = os.environ.get("GOOGLE_SHEETS_WORKSHEET", "")

@@ -11,6 +11,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pillow>=11",
     "celery[redis]>=5.4,<6",
+    "google-auth[requests]>=2.35",
     "gunicorn>=23",
 ]
 
