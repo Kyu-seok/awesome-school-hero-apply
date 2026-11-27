@@ -127,3 +127,24 @@ def test_one_failing_email_does_not_stop_the_others_and_stays_eligible(program, 
     send_todays_contact_day_emails()
 
     assert recipients() == ["fixed@example.com"]
+
+
+def test_operator_marking_contacted_before_the_contact_date_prevents_the_email(
+    program, api_client, django_user_model
+):
+    application = contact_today(program, applicant_email="early@example.com")
+    operator = django_user_model.objects.create_user("operator", password="pw", is_staff=True)
+    api_client.force_login(operator)
+
+    # 연락 가능 날짜 이틀 전, 운영자가 미리 통화하고 연락 완료로 바꾼다.
+    with time_machine.travel(datetime(2026, 12, 1, 15, 0, tzinfo=KST), tick=False):
+        response = api_client.patch(
+            f"/api/applications/{application.pk}/", {"status": "contacted"}, format="json"
+        )
+    assert response.status_code == 200
+
+    send_todays_contact_day_emails()
+
+    assert mail.outbox == []
+    application.refresh_from_db()
+    assert application.contact_day_email_sent_at is None
