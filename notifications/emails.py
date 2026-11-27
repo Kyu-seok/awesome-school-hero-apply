@@ -31,7 +31,10 @@ def send_receipt_email(application: Application) -> None:
 
 
 def send_contact_day_email(application: Application) -> None:
-    """연락일 안내 메일: 오늘 담당자가 연락드린다고 알리고 교육을 요약해 준다."""
+    """연락일 안내 메일: 오늘 운영자가 연락한다고 알리고 교육을 요약해 준다.
+
+    메일 본문은 신청자가 읽으므로 운영자를 "담당자"라고 부른다(GLOSSARY.md).
+    """
     program = application.program
     context = {
         "application": application,
