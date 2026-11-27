@@ -53,5 +53,16 @@ services:
       redis:
         condition: service_healthy
 
+  # 매일 09:00 KST에 오늘의 연락일 안내 발송을 worker에 넣는다. beat는 한 개만 띄운다.
+  beat:
+    build: .
+    command: celery -A config beat --loglevel=info --schedule=/tmp/celerybeat-schedule
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   db-data:
