@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "programs",
+    "applications",
 ]
 
 MIDDLEWARE = [
@@ -105,6 +106,9 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.1.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+# 익명 신청 접수 throttle 비율(DRF 형식, 예: "10/hour").
+APPLICATION_SUBMIT_THROTTLE_RATE = os.environ.get("APPLICATION_SUBMIT_THROTTLE_RATE", "10/hour")
 
 # 랜딩 페이지(/)에서 보여줄 대표 교육의 슬러그.
 LANDING_PROGRAM_SLUG = os.environ.get("LANDING_PROGRAM_SLUG", "ai-hero")
