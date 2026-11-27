@@ -5,8 +5,10 @@ API(serializer)와 관리자 페이지는 규칙을 다시 구현하지 않고 �
 
 진입점
 - receive_application: 신청 접수(검증, 중복 확인, 저장)
+- date_limits: 오늘 받을 수 있는 가장 이른 수업 희망일과 연락 가능 날짜(신청 폼 안내용)
 """
 
+from dataclasses import dataclass
 from datetime import date, timedelta
 
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -21,6 +23,28 @@ MIN_CLASS_COUNT = 1
 MAX_CLASS_COUNT = 35
 
 DUPLICATE_MESSAGE = "이미 접수된 신청이 있습니다."
+
+
+@dataclass(frozen=True)
+class DateLimits:
+    earliest_class_date: date
+    earliest_contact_date: date
+
+
+def date_limits(today: date | None = None) -> DateLimits:
+    """오늘 신청하면 받아들여지는 가장 이른 수업 희망일과 연락 가능 날짜.
+
+    연락 가능 날짜는 내일 이후의 첫 평일이다. 수업 희망일보다 앞서야 한다는 조건은
+    수업 희망일을 고른 뒤에야 정해지므로 여기서 다루지 않는다.
+    """
+    today = today or timezone.localdate()
+    contact = today + timedelta(days=1)
+    while contact.weekday() >= 5:
+        contact += timedelta(days=1)
+    return DateLimits(
+        earliest_class_date=today + timedelta(days=MIN_LEAD_DAYS),
+        earliest_contact_date=contact,
+    )
 
 
 def receive_application(
@@ -54,7 +78,7 @@ def receive_application(
             f"학급 수는 {MIN_CLASS_COUNT}~{MAX_CLASS_COUNT} 사이여야 합니다."
         )
 
-    earliest_class_date = today + timedelta(days=MIN_LEAD_DAYS)
+    earliest_class_date = date_limits(today).earliest_class_date
     if preferred_class_date < earliest_class_date:
         errors.setdefault("preferred_class_date", []).append(
             f"수업 희망일은 신청일로부터 3주 뒤인 {_format(earliest_class_date)} 이후여야 합니다. "
