@@ -37,3 +37,31 @@ def test_landing_page_is_404_when_featured_program_is_unpublished(client, settin
     response = client.get("/")
 
     assert response.status_code == 404
+
+
+def test_landing_page_has_application_form_for_the_featured_program(client, settings):
+    settings.LANDING_PROGRAM_SLUG = "featured"
+    make_program(slug="featured")
+
+    response = client.get("/")
+
+    html = response.content.decode()
+    assert 'data-endpoint="/api/applications/"' in html
+    assert 'name="program" value="featured"' in html
+    for field in [
+        "organization_name",
+        "applicant_name",
+        "applicant_email",
+        "applicant_phone",
+        "target_grade",
+        "class_count",
+        "class_type",
+        "session_count",
+        "preferred_class_date",
+        "contact_date",
+        "request_note",
+        "privacy_consent",
+        "website",
+    ]:
+        assert f'name="{field}"' in html
+    assert "csrftoken" in response.cookies

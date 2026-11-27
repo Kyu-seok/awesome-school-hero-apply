@@ -1,0 +1,68 @@
+{% load static %}
+<section id="apply" aria-labelledby="apply-title">
+  <h2 id="apply-title">수업 신청</h2>
+  <form id="apply-form" data-endpoint="/api/applications/" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="program" value="{{ program.slug }}">
+    <p class="form-error" data-error-for="non_field_errors" role="alert"></p>
+
+    <fieldset>
+      <legend>기관과 신청자</legend>
+      <label>기관명 <input type="text" name="organization_name" maxlength="100" required></label>
+      <p class="form-error" data-error-for="organization_name"></p>
+      <label>신청자 이름 <input type="text" name="applicant_name" maxlength="50" required></label>
+      <p class="form-error" data-error-for="applicant_name"></p>
+      <label>이메일 <input type="email" name="applicant_email" required></label>
+      <p class="form-error" data-error-for="applicant_email"></p>
+      <label>연락처 <input type="tel" name="applicant_phone" maxlength="30" required></label>
+      <p class="form-error" data-error-for="applicant_phone"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>수업 정보</legend>
+      <label>수업 대상(학년) <input type="text" name="target_grade" maxlength="50" placeholder="예: 초등 5학년" required></label>
+      <p class="form-error" data-error-for="target_grade"></p>
+      <label>학급 수 <input type="number" name="class_count" min="1" max="35" required></label>
+      <p class="form-error" data-error-for="class_count"></p>
+      <label>수업 형태
+        <select name="class_type" required>
+          <option value="single">1회</option>
+          <option value="multi">다회</option>
+        </select>
+      </label>
+      <p class="form-error" data-error-for="class_type"></p>
+      <label>교시 수 또는 회차 수 <input type="number" name="session_count" min="1" required></label>
+      <p class="form-error" data-error-for="session_count"></p>
+      <label>수업 희망일 <input type="date" name="preferred_class_date" required></label>
+      <small>신청일로부터 3주 뒤부터 고를 수 있습니다.</small>
+      <p class="form-error" data-error-for="preferred_class_date"></p>
+      <label>연락 가능 날짜 <input type="date" name="contact_date" required></label>
+      <small>내일 이후, 수업 희망일 전의 평일(월~금)을 골라 주세요.</small>
+      <p class="form-error" data-error-for="contact_date"></p>
+      <label>요청 사항 <textarea name="request_note" rows="4"></textarea></label>
+      <p class="form-error" data-error-for="request_note"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>개인정보 수집·이용 동의</legend>
+      <ul>
+        <li>수집 항목: 기관명, 신청자 이름, 이메일, 연락처</li>
+        <li>이용 목적: 수업 신청 확인과 일정 안내 연락</li>
+        <li>보유 기간: 신청일로부터 1년(이후 지체 없이 파기)</li>
+      </ul>
+      <label><input type="checkbox" name="privacy_consent" required> 위 내용에 동의합니다(필수)</label>
+      <p class="form-error" data-error-for="privacy_consent"></p>
+    </fieldset>
+
+    <div hidden aria-hidden="true">
+      <label>웹사이트 <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <button type="submit">신청하기</button>
+  </form>
+  <div id="apply-done" hidden role="status">
+    <h3>신청이 접수되었습니다</h3>
+    <p><strong data-contact-date></strong>에 담당자가 연락드립니다.</p>
+  </div>
+</section>
+<script src="{% static 'applications/apply-form.js' %}" defer></script>
