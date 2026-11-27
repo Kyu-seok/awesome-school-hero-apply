@@ -3,15 +3,12 @@
 템플릿은 notifications/templates/notifications/에 텍스트와 HTML 한 쌍씩 둔다.
 """
 
-from datetime import date
-
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
+from applications.dates import korean_date
 from applications.models import Application
-
-WEEKDAYS = "월화수목금토일"
 
 
 def send_receipt_email(application: Application) -> None:
@@ -19,8 +16,8 @@ def send_receipt_email(application: Application) -> None:
     context = {
         "application": application,
         "program_name": application.program.name,
-        "preferred_class_date": _long_date(application.preferred_class_date),
-        "contact_date": _short_date(application.contact_date),
+        "preferred_class_date": korean_date(application.preferred_class_date),
+        "contact_date": korean_date(application.contact_date, with_year=False),
     }
     _send(
         template="notifications/receipt",
@@ -39,8 +36,8 @@ def send_contact_day_email(application: Application) -> None:
     context = {
         "application": application,
         "program": program,
-        "preferred_class_date": _long_date(application.preferred_class_date),
-        "contact_date": _short_date(application.contact_date),
+        "preferred_class_date": korean_date(application.preferred_class_date),
+        "contact_date": korean_date(application.contact_date, with_year=False),
     }
     _send(
         template="notifications/contact_day",
@@ -59,11 +56,3 @@ def _send(*, template: str, subject: str, to: str, context: dict) -> None:
     )
     message.attach_alternative(render_to_string(f"{template}.html", context), "text/html")
     message.send()
-
-
-def _long_date(day: date) -> str:
-    return f"{day.year}년 {day.month}월 {day.day}일({WEEKDAYS[day.weekday()]})"
-
-
-def _short_date(day: date) -> str:
-    return f"{day.month}월 {day.day}일({WEEKDAYS[day.weekday()]})"

@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 
-from applications.services import date_limits
+from applications import services
 from programs.models import Program
 
 
@@ -12,5 +12,13 @@ def landing(request):
         slug=settings.LANDING_PROGRAM_SLUG,
     )
     return render(
-        request, "programs/landing.html", {"program": program, "date_limits": date_limits()}
+        request,
+        "programs/landing.html",
+        {
+            "program": program,
+            "date_limits": services.date_limits(),
+            "min_class_count": services.MIN_CLASS_COUNT,
+            "max_class_count": services.MAX_CLASS_COUNT,
+            "min_lead_weeks": services.MIN_LEAD_WEEKS,
+        },
     )

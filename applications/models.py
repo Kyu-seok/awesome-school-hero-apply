@@ -3,6 +3,21 @@ from django.db.models.functions import Lower
 
 from programs.models import Program
 
+# 한 신청이 받을 수 있는 학급 수. DB 제약, 서비스 검증, API·폼 안내가 모두 이 값을 쓴다.
+MIN_CLASS_COUNT = 1
+MAX_CLASS_COUNT = 35
+# 같은 이메일·교육·수업 희망일의 취소되지 않은 신청은 하나뿐이다(부분 유니크 제약 이름).
+UNIQUE_ACTIVE_APPLICATION = "unique_active_application"
+
+
+class ApplicationStatus(models.TextChoices):
+    """신청 상태. 코드에서는 Application.Status로 쓴다(모듈 수준에 두는 건 Meta에서 쓰려고)."""
+
+    RECEIVED = "received", "접수됨"
+    CONTACTED = "contacted", "연락 완료"
+    CONFIRMED = "confirmed", "수업 확정"
+    CANCELLED = "cancelled", "취소"
+
 
 class Application(models.Model):
     """신청: 한 기관이 하나의 교육을 특정 수업 희망일에 받고 싶다고 접수한 요청.
@@ -10,11 +25,7 @@ class Application(models.Model):
     도메인 규칙(날짜, 중복, 상태)은 applications.services가 가진다.
     """
 
-    class Status(models.TextChoices):
-        RECEIVED = "received", "접수됨"
-        CONTACTED = "contacted", "연락 완료"
-        CONFIRMED = "confirmed", "수업 확정"
-        CANCELLED = "cancelled", "취소"
+    Status = ApplicationStatus
 
     class ClassType(models.TextChoices):
         SINGLE = "single", "1회"
@@ -54,12 +65,14 @@ class Application(models.Model):
                 Lower("applicant_email"),
                 "program",
                 "preferred_class_date",
-                condition=~models.Q(status="cancelled"),
-                name="unique_active_application",
+                condition=~models.Q(status=ApplicationStatus.CANCELLED),
+                name=UNIQUE_ACTIVE_APPLICATION,
             ),
             models.CheckConstraint(
-                condition=models.Q(class_count__gte=1, class_count__lte=35),
-                name="class_count_between_1_and_35",
+                condition=models.Q(
+                    class_count__gte=MIN_CLASS_COUNT, class_count__lte=MAX_CLASS_COUNT
+                ),
+                name=f"class_count_between_{MIN_CLASS_COUNT}_and_{MAX_CLASS_COUNT}",
             ),
         ]
         indexes = [

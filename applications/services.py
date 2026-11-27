@@ -11,6 +11,7 @@ API(serializer)와 관리자 페이지는 규칙을 다시 구현하지 않고 �
 """
 
 import logging
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date, timedelta
 
@@ -18,16 +19,22 @@ from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
-from applications.models import Application
+from applications.dates import is_weekday, korean_date, next_weekday_after
+from applications.models import (
+    MAX_CLASS_COUNT,
+    MIN_CLASS_COUNT,
+    UNIQUE_ACTIVE_APPLICATION,
+    Application,
+)
 from notifications import emails
 from notifications.tasks import schedule_receipt_email
 from programs.models import Program
 
 logger = logging.getLogger(__name__)
 
+# 수업 준비 기간: 수업 희망일은 신청일로부터 이만큼 뒤여야 한다. 안내 문구의 "3주"도 여기서 나온다.
 MIN_LEAD_DAYS = 21
-MIN_CLASS_COUNT = 1
-MAX_CLASS_COUNT = 35
+MIN_LEAD_WEEKS = MIN_LEAD_DAYS // 7
 
 DUPLICATE_MESSAGE = "이미 접수된 신청이 있습니다."
 
@@ -45,12 +52,9 @@ def date_limits(today: date | None = None) -> DateLimits:
     수업 희망일을 고른 뒤에야 정해지므로 여기서 다루지 않는다.
     """
     today = today or timezone.localdate()
-    contact = today + timedelta(days=1)
-    while contact.weekday() >= 5:
-        contact += timedelta(days=1)
     return DateLimits(
         earliest_class_date=today + timedelta(days=MIN_LEAD_DAYS),
-        earliest_contact_date=contact,
+        earliest_contact_date=next_weekday_after(today),
     )
 
 
@@ -90,8 +94,9 @@ def receive_application(
     earliest_class_date = date_limits(today).earliest_class_date
     if preferred_class_date < earliest_class_date:
         errors.setdefault("preferred_class_date", []).append(
-            f"수업 희망일은 신청일로부터 3주 뒤인 {_format(earliest_class_date)} 이후여야 합니다. "
-            "수업 준비에 3주가 필요합니다."
+            f"수업 희망일은 신청일로부터 {MIN_LEAD_WEEKS}주 뒤인 "
+            f"{korean_date(earliest_class_date, with_weekday=False)} 이후여야 합니다. "
+            f"수업 준비에 {MIN_LEAD_WEEKS}주가 필요합니다."
         )
 
     errors_for_contact_date = _contact_date_errors(contact_date, preferred_class_date, today)
@@ -107,29 +112,24 @@ def receive_application(
     if _has_active_duplicate(program, applicant_email, preferred_class_date):
         raise ValidationError({NON_FIELD_ERRORS: [DUPLICATE_MESSAGE]})
 
-    try:
-        with transaction.atomic():
-            application = Application.objects.create(
-                program=program,
-                organization_name=organization_name,
-                applicant_name=applicant_name,
-                applicant_email=applicant_email,
-                applicant_phone=applicant_phone,
-                target_grade=target_grade,
-                class_count=class_count,
-                class_type=class_type,
-                session_count=session_count,
-                preferred_class_date=preferred_class_date,
-                contact_date=contact_date,
-                request_note=request_note,
-                privacy_agreed_at=timezone.now(),
-            )
-            schedule_receipt_email(application)
-    except IntegrityError as exc:
+    with _duplicate_as_validation_error(NON_FIELD_ERRORS), transaction.atomic():
         # 동시에 들어온 같은 신청: 먼저 확인했지만 DB 부분 유니크 제약이 최종 판정한다.
-        if "unique_active_application" in str(exc):
-            raise ValidationError({NON_FIELD_ERRORS: [DUPLICATE_MESSAGE]}) from exc
-        raise
+        application = Application.objects.create(
+            program=program,
+            organization_name=organization_name,
+            applicant_name=applicant_name,
+            applicant_email=applicant_email,
+            applicant_phone=applicant_phone,
+            target_grade=target_grade,
+            class_count=class_count,
+            class_type=class_type,
+            session_count=session_count,
+            preferred_class_date=preferred_class_date,
+            contact_date=contact_date,
+            request_note=request_note,
+            privacy_agreed_at=timezone.now(),
+        )
+        schedule_receipt_email(application)
     return application
 
 
@@ -190,15 +190,21 @@ def change_status(
     if operator_memo is not None:
         application.operator_memo = operator_memo
         update_fields.append("operator_memo")
-    try:
-        with transaction.atomic():
-            application.save(update_fields=update_fields)
-    except IntegrityError as exc:
-        # 취소된 신청을 되살렸는데 같은 조건의 활성 신청이 이미 있는 경우.
-        if "unique_active_application" in str(exc):
-            raise ValidationError({"status": [DUPLICATE_MESSAGE]}) from exc
-        raise
+    # 취소된 신청을 되살렸는데 같은 조건의 활성 신청이 이미 있으면 유니크 제약에 걸린다.
+    with _duplicate_as_validation_error("status"), transaction.atomic():
+        application.save(update_fields=update_fields)
     return application
+
+
+@contextmanager
+def _duplicate_as_validation_error(field: str):
+    """블록 안에서 활성 신청 유니크 제약에 걸리면 field의 중복 신청 ValidationError로 바꾼다."""
+    try:
+        yield
+    except IntegrityError as exc:
+        if UNIQUE_ACTIVE_APPLICATION in str(exc):
+            raise ValidationError({field: [DUPLICATE_MESSAGE]}) from exc
+        raise
 
 
 def _contact_date_errors(contact_date: date, preferred_class_date: date, today: date) -> list[str]:
@@ -207,7 +213,7 @@ def _contact_date_errors(contact_date: date, preferred_class_date: date, today: 
         errors.append("연락 가능 날짜는 내일 이후여야 합니다.")
     if contact_date >= preferred_class_date:
         errors.append("연락 가능 날짜는 수업 희망일보다 앞서야 합니다.")
-    if contact_date.weekday() >= 5:
+    if not is_weekday(contact_date):
         errors.append("연락 가능 날짜는 평일(월~금)이어야 합니다.")
     return errors
 
@@ -223,6 +229,3 @@ def _has_active_duplicate(program: Program, email: str, preferred_class_date: da
         .exists()
     )
 
-
-def _format(day: date) -> str:
-    return f"{day.year}년 {day.month}월 {day.day}일"

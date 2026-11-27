@@ -49,8 +49,8 @@
             </div>
             <div class="field">
               <label for="f-class_count">학급 수</label>
-              <input id="f-class_count" type="number" name="class_count" min="1" max="35" inputmode="numeric" required aria-describedby="h-class_count e-class_count">
-              <p class="field__hint" id="h-class_count">1~35학급</p>
+              <input id="f-class_count" type="number" name="class_count" min="{{ min_class_count }}" max="{{ max_class_count }}" inputmode="numeric" required aria-describedby="h-class_count e-class_count">
+              <p class="field__hint" id="h-class_count">{{ min_class_count }}~{{ max_class_count }}학급</p>
               <p class="form-error" id="e-class_count" data-error-for="class_count"></p>
             </div>
             <div class="field">
@@ -76,7 +76,7 @@
             <div class="field">
               <label for="f-preferred_class_date">수업 희망일</label>
               <input id="f-preferred_class_date" type="date" name="preferred_class_date" min="{{ date_limits.earliest_class_date|date:'Y-m-d' }}" required aria-describedby="h-preferred_class_date e-preferred_class_date">
-              <p class="field__hint" id="h-preferred_class_date">수업 준비에 3주가 걸려서 <strong>{{ date_limits.earliest_class_date|date:"Y년 n월 j일" }}({{ date_limits.earliest_class_date|date:"D"|slice:":1" }})</strong>부터 고를 수 있습니다.</p>
+              <p class="field__hint" id="h-preferred_class_date">수업 준비에 {{ min_lead_weeks }}주가 걸려서 <strong>{{ date_limits.earliest_class_date|date:"Y년 n월 j일" }}({{ date_limits.earliest_class_date|date:"D"|slice:":1" }})</strong>부터 고를 수 있습니다.</p>
               <p class="form-error" id="e-preferred_class_date" data-error-for="preferred_class_date"></p>
             </div>
             <div class="field">

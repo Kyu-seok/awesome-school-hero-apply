@@ -21,11 +21,13 @@ class ApplicationSubmitSerializer(serializers.Serializer):
     applicant_email = serializers.EmailField(label="신청자 이메일")
     applicant_phone = serializers.CharField(max_length=30, label="신청자 연락처")
     target_grade = serializers.CharField(max_length=50, label="수업 대상(학년)")
-    class_count = serializers.IntegerField(label="학급 수", help_text="1~35")
+    class_count = serializers.IntegerField(
+        label="학급 수", help_text=f"{services.MIN_CLASS_COUNT}~{services.MAX_CLASS_COUNT}"
+    )
     class_type = serializers.ChoiceField(choices=Application.ClassType.choices, label="수업 형태")
     session_count = serializers.IntegerField(min_value=1, label="교시 수 또는 회차 수")
     preferred_class_date = serializers.DateField(
-        label="수업 희망일", help_text="오늘(KST)로부터 21일 이후"
+        label="수업 희망일", help_text=f"오늘(KST)로부터 {services.MIN_LEAD_DAYS}일 이후"
     )
     contact_date = serializers.DateField(
         label="연락 가능 날짜", help_text="내일 이후, 수업 희망일 전의 평일"
