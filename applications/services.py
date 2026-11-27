@@ -4,7 +4,7 @@ API(serializer)와 관리자 페이지는 규칙을 다시 구현하지 않고 �
 "오늘"은 언제나 Asia/Seoul(TIME_ZONE) 기준 날짜다.
 
 진입점
-- receive_application: 신청 접수(검증, 중복 확인, 저장)
+- receive_application: 신청 접수(검증, 중복 확인, 저장, 접수 확인 메일 예약)
 """
 
 from datetime import date, timedelta
@@ -14,6 +14,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from applications.models import Application
+from notifications.tasks import schedule_receipt_email
 from programs.models import Program
 
 MIN_LEAD_DAYS = 21
@@ -39,7 +40,9 @@ def receive_application(
     privacy_consent: bool,
     request_note: str = "",
 ) -> Application:
-    """신청을 접수한다. 규칙을 어기면 필드별 메시지를 담은 ValidationError를 던진다.
+    """신청을 접수하고, 커밋 뒤 접수 확인 메일을 예약한다.
+
+    규칙을 어기면 필드별 메시지를 담은 ValidationError를 던진다.
 
     중복(같은 이메일, 교육, 수업 희망일의 취소되지 않은 신청)은 NON_FIELD_ERRORS로 알린다.
     """
@@ -76,7 +79,7 @@ def receive_application(
 
     try:
         with transaction.atomic():
-            return Application.objects.create(
+            application = Application.objects.create(
                 program=program,
                 organization_name=organization_name,
                 applicant_name=applicant_name,
@@ -91,11 +94,13 @@ def receive_application(
                 request_note=request_note,
                 privacy_agreed_at=timezone.now(),
             )
+            schedule_receipt_email(application)
     except IntegrityError as exc:
         # 동시에 들어온 같은 신청: 먼저 확인했지만 DB 부분 유니크 제약이 최종 판정한다.
         if "unique_active_application" in str(exc):
             raise ValidationError({NON_FIELD_ERRORS: [DUPLICATE_MESSAGE]}) from exc
         raise
+    return application
 
 
 def _contact_date_errors(contact_date: date, preferred_class_date: date, today: date) -> list[str]:
