@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ program.name }} | 히어로스쿨</title>
+</head>
+<body>
+  <main>
+    <h1>{{ program.name }}</h1>
+    <p>{{ program.summary }}</p>
+    {% if program.image %}<img src="{{ program.image.url }}" alt="{{ program.name }} 대표 이미지">{% endif %}
+    {{ program.description|linebreaks }}
+    <dl>
+      {% if program.audience %}<dt>추천 대상</dt><dd>{{ program.audience }}</dd>{% endif %}
+      {% if program.class_format %}<dt>수업 형태</dt><dd>{{ program.class_format }}</dd>{% endif %}
+    </dl>
+    <h2>커리큘럼</h2>
+    <ol>
+      {% for item in program.curriculum.all %}
+      <li>
+        <h3>{{ item.period }}교시 · {{ item.title }}</h3>
+        <p>{{ item.description }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+  </main>
+</body>
+</html>

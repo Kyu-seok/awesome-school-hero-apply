@@ -1,0 +1,32 @@
+# 로컬 개발용. 배포 구성(nginx, gunicorn, redis, celery)은 이후 티켓에서 더한다.
+name: hero-school
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: hero_school
+      POSTGRES_USER: hero_school
+      POSTGRES_PASSWORD: hero_school
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hero_school -d hero_school"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgres://hero_school:hero_school@db:5432/hero_school
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
