@@ -65,6 +65,12 @@ class ApplicationReceiptSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+def honeypot_receipt(data) -> dict:
+    """숨김 필드를 채운 봇에게 돌려줄 가짜 접수 결과. 저장하지 않으므로 id는 None이다."""
+    unsaved = Application(contact_date=data.get("contact_date"))
+    return ApplicationReceiptSerializer(unsaved).data
+
+
 def _as_drf_errors(exc: DjangoValidationError) -> dict[str, list[str]]:
     errors = exc.message_dict
     if NON_FIELD_ERRORS in errors:

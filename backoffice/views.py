@@ -28,7 +28,7 @@ TAB_ALL = "all"
 def application_list(request):
     """기본 탭은 오늘 연락할 신청(연락 가능 날짜가 오늘), "전체" 탭은 모든 신청. 둘 다 최신순."""
     tab = TAB_ALL if request.GET.get("tab") == TAB_ALL else TAB_TODAY
-    queryset = Application.objects.select_related("program").order_by("-created_at", "-id")
+    queryset = Application.objects.for_operator()
     if tab == TAB_TODAY:
         queryset = queryset.filter(contact_date=timezone.localdate())
 
@@ -55,7 +55,7 @@ def application_list(request):
 @operator_required
 def application_detail(request, pk):
     """신청 상세. 모든 입력값을 보여주고, 상태와 운영 메모를 바꾼다."""
-    application = get_object_or_404(Application.objects.select_related("program"), pk=pk)
+    application = get_object_or_404(Application.objects.for_operator(), pk=pk)
     if request.method == "POST":
         form = StatusChangeForm(request.POST)
         if form.is_valid():

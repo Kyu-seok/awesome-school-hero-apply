@@ -14,6 +14,7 @@ from applications.serializers import (
     ApplicationReceiptSerializer,
     ApplicationSubmitSerializer,
     OperatorApplicationSerializer,
+    honeypot_receipt,
 )
 from applications.throttles import ApplicationSubmitThrottle
 
@@ -34,7 +35,7 @@ class ApplicationViewSet(
     - 목록(GET)과 상태·메모 수정(PATCH)은 운영자(is_staff, 세션 인증)만 쓴다.
     """
 
-    queryset = Application.objects.select_related("program").order_by("-created_at", "-id")
+    queryset = Application.objects.for_operator()
     # 세션 인증만 쓴다. 그래야 익명 요청이 401(Basic 인증 요구)이 아니라 403을 받는다.
     authentication_classes = [SessionAuthentication]
     permission_classes = [IsAdminUser]
@@ -68,13 +69,7 @@ class ApplicationViewSet(
     def create(self, request, *args, **kwargs):
         if request.data.get(HONEYPOT_FIELD):
             # 숨김 필드를 채운 요청은 봇이다. 검증도 저장도 하지 않고 성공처럼 응답한다.
-            fake = {
-                "id": None,
-                "status": Application.Status.RECEIVED,
-                "status_display": Application.Status.RECEIVED.label,
-                "contact_date": request.data.get("contact_date"),
-            }
-            return Response(fake, status=status.HTTP_201_CREATED)
+            return Response(honeypot_receipt(request.data), status=status.HTTP_201_CREATED)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

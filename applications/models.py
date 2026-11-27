@@ -19,6 +19,12 @@ class ApplicationStatus(models.TextChoices):
     CANCELLED = "cancelled", "취소"
 
 
+class ApplicationQuerySet(models.QuerySet):
+    def for_operator(self):
+        """운영자 목록(관리자 페이지, 운영자 API): 교육을 함께 읽고 최신순(Meta.ordering)."""
+        return self.select_related("program")
+
+
 class Application(models.Model):
     """신청: 한 기관이 하나의 교육을 특정 수업 희망일에 받고 싶다고 접수한 요청.
 
@@ -56,10 +62,13 @@ class Application(models.Model):
     created_at = models.DateTimeField("접수 시각", auto_now_add=True)
     updated_at = models.DateTimeField("수정 시각", auto_now=True)
 
+    objects = ApplicationQuerySet.as_manager()
+
     class Meta:
         verbose_name = "신청"
         verbose_name_plural = "신청"
-        ordering = ["-created_at"]
+        # 같은 시각에 접수된 신청도 순서가 정해지도록 id로 한 번 더 정렬한다.
+        ordering = ["-created_at", "-id"]
         constraints = [
             models.UniqueConstraint(
                 Lower("applicant_email"),
